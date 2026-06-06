@@ -1,0 +1,41 @@
+THÀNH VIÊN 1 - ACCOUNT / USER
+
+MỤC ĐÍCH FILE ZIP NÀY
+- Có giữ khung sườn project ASP.NET MVC: .sln, .csproj, Program.cs, appsettings, Views/Shared, wwwroot cơ bản.
+- Chỉ chứa phần chức năng/module của thành viên này.
+- Không chứa bin, obj, .vs.
+- Google OAuth ClientId/ClientSecret trong appsettings đã đổi thành placeholder để tránh bị GitHub chặn secret.
+
+PHÂN CÔNG
+Chỉ phụ trách đăng ký, đăng nhập, quên mật khẩu, profile, quản lý user.
+
+CÁCH UP LÊN GITHUB
+1. Clone hoặc mở repo nhóm:
+   git clone https://github.com/TranNgocDat205/LapTrinhWeb_Nhom3.git
+
+2. Vào repo:
+   cd LapTrinhWeb_Nhom3
+
+3. Luôn lấy code mới nhất trước:
+   git pull origin main
+
+4. Giải nén ZIP này.
+
+5. Copy đúng các thư mục/file trong ZIP này đè vào repo nhóm.
+   Không copy nguyên thư mục cha của ZIP vào trong repo.
+
+6. Kiểm tra thay đổi:
+   git status
+
+7. Commit:
+   git add .
+   git commit -m "THÀNH VIÊN 1 - ACCOUNT / USER - Hoan thanh module"
+
+8. Push:
+   git push origin main
+
+LƯU Ý
+- Nếu bị chặn do appsettings.json có secret, xóa ClientId/ClientSecret thật rồi amend commit.
+- Nếu bị rejected, chạy:
+  git pull origin main --rebase
+  git push origin main

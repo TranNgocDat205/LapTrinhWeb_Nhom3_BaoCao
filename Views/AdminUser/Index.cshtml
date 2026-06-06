@@ -1,0 +1,109 @@
+﻿@model List<DACS_Nhom3.Models.ApplicationUser>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<DACS_Nhom3.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+    string search = ViewBag.Search as string ?? "";
+}
+
+<div class="container py-5">
+    <div class="card border-0 shadow-lg rounded-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                <div>
+                    <h1 class="fw-bold mb-1">👥 Quản lý tài khoản user</h1>
+                    <p class="text-muted mb-0">Admin có thể vô hiệu hóa hoặc mở khóa tài khoản người dùng.</p>
+                </div>
+
+                <form method="get" class="d-flex gap-2">
+                    <input name="search" value="@search" class="form-control rounded-pill" placeholder="Tìm email, tên user..." />
+                    <button class="btn btn-warning rounded-pill px-4" type="submit">Tìm</button>
+                </form>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success rounded-4">@TempData["Success"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger rounded-4">@TempData["Error"]</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Họ tên</th>
+                            <th>Kim cương</th>
+                            <th>Lượt tải free</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            bool isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@user.Email</div>
+                                    @if (isAdmin)
+                                    {
+                                        <span class="badge bg-dark">Admin</span>
+                                    }
+                                </td>
+                                <td>@user.FullName</td>
+                                <td>💎 @user.Diamonds</td>
+                                <td>🎁 @user.FreeDownloads</td>
+                                <td>@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="badge bg-success">Đang hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Đã vô hiệu hóa</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (!isAdmin)
+                                    {
+                                        if (user.IsActive)
+                                        {
+                                            <form asp-action="Disable" method="post" class="d-inline" onsubmit="return confirm('Vô hiệu hóa tài khoản này? User đang đăng nhập sẽ bị thoát ra trang đăng nhập.');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@user.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                                    🚫 Vô hiệu hóa
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="Enable" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@user.Id" />
+                                                <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                                    ✅ Mở khóa
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không áp dụng</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
