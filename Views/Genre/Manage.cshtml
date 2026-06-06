@@ -1,0 +1,466 @@
+﻿@model IEnumerable<DACS_Nhom3.Models.Genre>
+@{
+    ViewData["Title"] = "Quản lý thể loại";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold text-primary mb-1">
+                        <i class="fas fa-tags me-2"></i> Quản lý thể loại
+                    </h2>
+                    <p class="text-muted mb-0">Quản lý danh sách thể loại truyện, thêm/sửa/xóa thể loại</p>
+                </div>
+                <button type="button" class="btn btn-primary btn-lg rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#createGenreModal">
+                    <i class="fas fa-plus-circle me-2"></i> Thêm thể loại
+                </button>
+            </div>
+
+            <!-- Alert -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Bảng danh sách -->
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-primary text-white py-3 rounded-top-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-list fa-2x me-3"></i>
+                            <div>
+                                <h4 class="mb-0 fw-bold">Danh sách thể loại</h4>
+                                <small class="opacity-75">Tổng số: @Model.Count() thể loại</small>
+                            </div>
+                        </div>
+                        <div class="input-group w-auto">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm..." style="border-radius: 20px 0 0 20px;">
+                            <button class="btn btn-light" onclick="searchTable()" style="border-radius: 0 20px 20px 0;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="genreTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 60px">STT</th>
+                                    <th style="width: 80px">Icon</th>
+                                    <th>Tên thể loại</th>
+                                    <th>Mô tả</th>
+                                    <th style="width: 100px">Số truyện</th>
+                                    <th style="width: 100px">Trạng thái</th>
+                                    <th style="width: 120px">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var genre in Model.OrderBy(g => g.SortOrder))
+                                {
+                                    <tr id="row-@genre.Id">
+                                        <td class="sort-order-cell">@genre.SortOrder</td>
+                                        <td class="text-center">
+                                            <div class="genre-icon-circle" style="background: @(genre.Color ?? "#E67E22")">
+                                                <i class="@(string.IsNullOrEmpty(genre.Icon) ? "fas fa-book" : genre.Icon)"></i>
+                                            </div>
+                                        </td>
+                                        <td class="fw-semibold">@genre.Name</td>
+                                        <td class="text-muted">@(genre.Description?.Length > 50 ? genre.Description.Substring(0, 50) + "..." : genre.Description)</td>
+                                        <td>
+                                            <span class="badge bg-info rounded-pill px-3 py-2">@(genre.Stories?.Count ?? 0) truyện</span>
+                                        </td>
+                                        <td>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input toggle-status" type="checkbox"
+                                                       data-id="@genre.Id"
+                                                       @(genre.IsActive ? "checked" : "")>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-warning edit-genre"
+                                                        data-id="@genre.Id"
+                                                        data-name="@genre.Name"
+                                                        data-description="@genre.Description"
+                                                        data-icon="@genre.Icon"
+                                                        data-color="@genre.Color"
+                                                        data-sortorder="@genre.SortOrder"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editGenreModal">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-danger delete-genre" data-id="@genre.Id">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Thêm thể loại - SỬA LẠI FORM -->
+<div class="modal fade" id="createGenreModal" tabindex="-1" aria-labelledby="createGenreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-gradient-primary text-white border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="createGenreModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i> Thêm thể loại mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createGenreForm" method="post" action="@Url.Action("Create", "Genre")">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên thể loại <span class="text-danger">*</span></label>
+                        <input type="text" name="Name" id="GenreName" class="form-control form-control-lg" placeholder="VD: Tiên Hiệp, Ngôn Tình, Kiếm Hiệp..." required />
+                        <small class="text-muted">Tên thể loại sẽ hiển thị trên website</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea name="Description" id="GenreDescription" class="form-control" rows="3" placeholder="Mô tả về thể loại này..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Icon</label>
+                            <input type="text" name="Icon" id="GenreIcon" class="form-control" placeholder="fas fa-book" value="fas fa-book" />
+                            <small class="text-muted">Font Awesome class</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Màu sắc</label>
+                            <input type="color" name="Color" id="GenreColor" class="form-control form-control-color" value="#E67E22" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Thứ tự hiển thị</label>
+                        <input type="number" name="SortOrder" id="GenreSortOrder" class="form-control" value="0" />
+                        <small class="text-muted">Số càng nhỏ càng hiển thị lên đầu</small>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="IsActive" id="GenreIsActive" class="form-check-input" value="true" checked />
+                        <label class="form-check-label fw-bold">Kích hoạt thể loại</label>
+                        <input type="hidden" name="IsActive" value="false" />
+                        <small class="text-muted d-block">Nếu không kích hoạt, thể loại sẽ không hiển thị trên website</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="submitGenreBtn">
+                        <i class="fas fa-save me-2"></i> Thêm thể loại
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Sửa thể loại -->
+<div class="modal fade" id="editGenreModal" tabindex="-1" aria-labelledby="editGenreModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-gradient-warning text-white border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="editGenreModalLabel">
+                    <i class="fas fa-edit me-2"></i> Chỉnh sửa thể loại
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editGenreForm" method="post" action="@Url.Action("Edit", "Genre")">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editGenreId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên thể loại <span class="text-danger">*</span></label>
+                        <input type="text" name="Name" id="editGenreName" class="form-control form-control-lg" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea name="Description" id="editGenreDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Icon</label>
+                            <input type="text" name="Icon" id="editGenreIcon" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Màu sắc</label>
+                            <input type="color" name="Color" id="editGenreColor" class="form-control form-control-color" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Thứ tự hiển thị</label>
+                        <input type="number" name="SortOrder" id="editGenreSortOrder" class="form-control" />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="IsActive" id="editGenreIsActive" class="form-check-input" value="true" />
+                        <input type="hidden" name="IsActive" value="false" />
+                        <label class="form-check-label fw-bold">Kích hoạt thể loại</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Hủy
+                    </button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4">
+                        <i class="fas fa-save me-2"></i> Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #2D3E50 0%, #1a2a3a 100%);
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #E67E22 0%, #d35400 100%);
+    }
+
+    .genre-icon-circle {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        color: white;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+    }
+
+        .genre-icon-circle:hover {
+            transform: scale(1.1);
+        }
+
+    .table tbody tr {
+        transition: all 0.3s;
+    }
+
+        .table tbody tr:hover {
+            background-color: #fff8f0;
+        }
+
+    .form-check-input:checked {
+        background-color: #E67E22;
+        border-color: #E67E22;
+    }
+
+    .btn-group .btn {
+        border-radius: 8px;
+        margin: 0 2px;
+        transition: all 0.3s;
+    }
+
+        .btn-group .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    #searchInput {
+        border-radius: 20px 0 0 20px;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+        #searchInput::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        #searchInput:focus {
+            background: white;
+            color: #333;
+            box-shadow: none;
+        }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Xử lý submit form Create bằng AJAX
+        $('#createGenreForm').on('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log("Form submitted!");
+
+            var formData = $(this).serialize();
+            console.log("Form data: " + formData);
+
+            $.ajax({
+                url: '@Url.Action("Create", "Genre")',
+                type: 'POST',
+                data: formData,
+                beforeSend: function() {
+                    $('#submitGenreBtn').html('<i class="fas fa-spinner fa-spin me-2"></i> Đang xử lý...').prop('disabled', true);
+                },
+                success: function(response) {
+                    console.log("Success response:", response);
+                    $('#submitGenreBtn').html('<i class="fas fa-save me-2"></i> Thêm thể loại').prop('disabled', false);
+
+                    if (response && response.success) {
+                        $('#createGenreModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert((response && response.message) ? response.message : 'Không thể thêm thể loại!');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error:", xhr);
+                    $('#submitGenreBtn').html('<i class="fas fa-save me-2"></i> Thêm thể loại').prop('disabled', false);
+
+                    if (xhr.status === 400) {
+                        alert('Có lỗi validation: ' + xhr.responseText);
+                    } else {
+                        alert('Có lỗi xảy ra: ' + error);
+                    }
+                }
+            });
+        });
+
+        // Xử lý submit form Edit bằng AJAX
+        $('#editGenreForm').on('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var formData = $(this).serialize();
+
+            $.ajax({
+                url: '@Url.Action("Edit", "Genre")',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response && response.success) {
+                        $('#editGenreModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert((response && response.message) ? response.message : 'Không thể cập nhật thể loại!');
+                    }
+                },
+                error: function(xhr) {
+                    alert('Có lỗi xảy ra khi cập nhật!');
+                }
+            });
+        });
+
+        // Delete genre
+        $('.delete-genre').click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var id = $(this).data('id');
+            var row = $('#row-' + id);
+            var genreName = row.find('td:eq(2)').text().trim();
+
+            if (confirm(`Bạn có chắc chắn muốn xóa thể loại "${genreName}"?`)) {
+                $.ajax({
+                    url: '/Genre/Delete',
+                    type: 'POST',
+                    data: { id: id },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            row.fadeOut(300, function() { $(this).remove(); });
+                            alert(response.message);
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra!');
+                    }
+                });
+            }
+        });
+
+        // Toggle status
+        $('.toggle-status').change(function() {
+            var id = $(this).data('id');
+            var $checkbox = $(this);
+
+            $.ajax({
+                url: '/Genre/ToggleStatus',
+                type: 'POST',
+                data: { id: id },
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val()
+                },
+                success: function(response) {
+                    if (!response.success) {
+                        $checkbox.prop('checked', !$checkbox.is(':checked'));
+                    }
+                },
+                error: function() {
+                    $checkbox.prop('checked', !$checkbox.is(':checked'));
+                    alert('Có lỗi xảy ra!');
+                }
+            });
+        });
+
+        // Edit genre - load data
+        $('.edit-genre').click(function(e) {
+            e.stopPropagation();
+            $('#editGenreId').val($(this).data('id'));
+            $('#editGenreName').val($(this).data('name'));
+            $('#editGenreDescription').val($(this).data('description'));
+            $('#editGenreIcon').val($(this).data('icon') || 'fas fa-book');
+            $('#editGenreColor').val($(this).data('color') || '#E67E22');
+            $('#editGenreSortOrder').val($(this).data('sortorder'));
+            $('#editGenreIsActive').prop('checked', $(this).data('isactive') !== false);
+        });
+
+        // Search function
+        window.searchTable = function() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toLowerCase();
+            var table = document.getElementById("genreTable");
+            var rows = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < rows.length; i++) {
+                var nameCell = rows[i].getElementsByTagName("td")[2];
+                if (nameCell) {
+                    var name = nameCell.textContent || nameCell.innerText;
+                    if (name.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        };
+
+        $('#searchInput').keypress(function(e) {
+            if (e.which == 13) {
+                searchTable();
+            }
+        });
+    });
+</script>

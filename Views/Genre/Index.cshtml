@@ -1,0 +1,116 @@
+﻿@model IEnumerable<DACS_Nhom3.Models.Genre>
+@{
+    ViewData["Title"] = "Thể loại truyện";
+    var favoriteGenres = ViewBag.FavoriteGenres as List<int> ?? new List<int>();
+}
+
+<div class="container mt-4">
+    <div class="section-header text-center mb-5" data-aos="fade-up">
+        <h1 class="section-title">Danh Sách Thể Loại</h1>
+        <p class="section-subtitle">Khám phá các thể loại truyện đa dạng và phong phú</p>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var genre in Model)
+        {
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="genre-card" onclick="location.href='@Url.Action("Index", "Story", new { genreId = genre.Id })'">
+                    <div class="genre-icon-wrapper" style="background: @(genre.Color ?? "#E67E22")">
+                        <i class="@(string.IsNullOrEmpty(genre.Icon) ? "fas fa-book" : genre.Icon)"></i>
+                    </div>
+                    <h3 class="genre-name">@genre.Name</h3>
+                    <p class="genre-stats">
+                        <i class="fas fa-book-open me-1"></i> @(genre.Stories?.Count ?? 0) truyện
+                    </p>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var isFav = favoriteGenres.Contains(genre.Id);
+                        <form asp-controller="Genre" asp-action="ToggleFavoriteGenre" method="post" onclick="event.stopPropagation();">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="genreId" value="@genre.Id" />
+                            <button type="submit" class="btn btn-sm @(isFav ? "btn-warning" : "btn-outline-warning") rounded-pill mt-2">
+                                <i class="fas fa-star me-1"></i>@(isFav ? "Đã lưu" : "Lưu")
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        font-family: 'Playfair Display', serif;
+        color: #2D3E50;
+        position: relative;
+        display: inline-block;
+    }
+
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, #E67E22, #d35400);
+            border-radius: 2px;
+        }
+
+    .section-subtitle {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        margin-top: 1rem;
+    }
+
+    .genre-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        cursor: pointer;
+        height: 100%;
+    }
+
+        .genre-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+        }
+
+    .genre-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        color: white;
+        font-size: 2rem;
+        transition: all 0.3s;
+    }
+
+    .genre-card:hover .genre-icon-wrapper {
+        transform: scale(1.1);
+        border-radius: 30px;
+    }
+
+    .genre-name {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2D3E50;
+    }
+
+    .genre-stats {
+        font-size: 0.8rem;
+        color: #E67E22;
+        margin-bottom: 0;
+    }
+</style>

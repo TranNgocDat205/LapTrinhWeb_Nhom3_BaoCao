@@ -1,4 +1,4 @@
-THÀNH VIÊN 1 - ACCOUNT / USER
+THÀNH VIÊN 2 - GENRE / CATEGORY
 
 MỤC ĐÍCH FILE ZIP NÀY
 - Có giữ khung sườn project ASP.NET MVC: .sln, .csproj, Program.cs, appsettings, Views/Shared, wwwroot cơ bản.
@@ -7,7 +7,7 @@ MỤC ĐÍCH FILE ZIP NÀY
 - Google OAuth ClientId/ClientSecret trong appsettings đã đổi thành placeholder để tránh bị GitHub chặn secret.
 
 PHÂN CÔNG
-Chỉ phụ trách đăng ký, đăng nhập, quên mật khẩu, profile, quản lý user.
+Chỉ phụ trách thể loại/category: thêm, sửa, xóa, chi tiết, danh sách, yêu thích thể loại.
 
 CÁCH UP LÊN GITHUB
 1. Clone hoặc mở repo nhóm:
@@ -29,7 +29,7 @@ CÁCH UP LÊN GITHUB
 
 7. Commit:
    git add .
-   git commit -m "THÀNH VIÊN 1 - ACCOUNT / USER - Hoan thanh module"
+   git commit -m "THÀNH VIÊN 2 - GENRE / CATEGORY - Hoan thanh module"
 
 8. Push:
    git push origin main

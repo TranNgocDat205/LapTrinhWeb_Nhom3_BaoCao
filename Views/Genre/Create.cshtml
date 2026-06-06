@@ -1,0 +1,139 @@
+﻿@model DACS_Nhom3.Models.Genre
+@{
+    ViewData["Title"] = "Thêm thể loại mới";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-primary text-white py-3 rounded-top-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-plus-circle fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0 fw-bold">Thêm thể loại mới</h3>
+                            <p class="mb-0 opacity-75">Tạo thể loại truyện mới cho thư viện</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none" id="validationSummary"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">
+                                <i class="fas fa-tag text-warning me-1"></i> Tên thể loại <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control form-control-lg" placeholder="VD: Tiên Hiệp, Ngôn Tình, Kiếm Hiệp..." />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                            <small class="text-muted">Tên thể loại sẽ hiển thị trên website</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">
+                                <i class="fas fa-align-left text-info me-1"></i> Mô tả
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả về thể loại này..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Icon" class="form-label fw-bold">
+                                    <i class="fab fa-font-awesome me-1"></i> Icon
+                                </label>
+                                <input asp-for="Icon" class="form-control" placeholder="fas fa-book" value="fas fa-book" />
+                                <small class="text-muted">
+                                    <a href="https://fontawesome.com/icons" target="_blank">Font Awesome</a> class
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Color" class="form-label fw-bold">
+                                    <i class="fas fa-palette me-1"></i> Màu sắc
+                                </label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input asp-for="Color" type="color" class="form-control form-control-color" style="width: 60px; height: 45px;" />
+                                    <input type="text" id="colorText" class="form-control" placeholder="#E67E22" value="#E67E22" />
+                                </div>
+                                <small class="text-muted">Chọn màu cho icon thể loại</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SortOrder" class="form-label fw-bold">
+                                <i class="fas fa-sort-numeric-down me-1"></i> Thứ tự hiển thị
+                            </label>
+                            <input asp-for="SortOrder" type="number" class="form-control" value="0" />
+                            <small class="text-muted">Số càng nhỏ càng hiển thị lên đầu</small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsActive" class="form-check-input" checked />
+                            <label asp-for="IsActive" class="form-check-label">
+                                <i class="fas fa-check-circle text-success me-1"></i> Kích hoạt thể loại
+                            </label>
+                            <small class="text-muted d-block">Nếu không kích hoạt, thể loại sẽ không hiển thị trên website</small>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a asp-action="Manage" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="fas fa-arrow-left me-2"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 py-2">
+                                <i class="fas fa-save me-2"></i> Thêm thể loại
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #2D3E50 0%, #1a2a3a 100%);
+    }
+
+    .form-control:focus {
+        border-color: #E67E22;
+        box-shadow: 0 0 0 0.2rem rgba(230,126,34,0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #E67E22, #d35400);
+        border: none;
+        transition: all 0.3s;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.4);
+        }
+</style>
+
+<script>
+    // Đồng bộ màu sắc
+    const colorPicker = document.querySelector('#Color');
+    const colorText = document.querySelector('#colorText');
+
+    colorPicker.addEventListener('change', function() {
+        colorText.value = this.value;
+    });
+
+    colorText.addEventListener('input', function() {
+        colorPicker.value = this.value;
+    });
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

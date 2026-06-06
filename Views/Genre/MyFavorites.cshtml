@@ -1,0 +1,100 @@
+﻿@model IEnumerable<DACS_Nhom3.Models.Genre>
+@{
+    ViewData["Title"] = "Thể loại yêu thích";
+}
+
+<div class="container py-5">
+    <div class="page-header mb-4">
+        <h2 class="page-title"><i class="fas fa-star text-warning me-2"></i>Thể Loại Yêu Thích</h2>
+        <p class="text-muted">Danh sách thể loại bạn đã lưu</p>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var genre in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up">
+                    <div class="genre-card h-100" onclick="location.href='@Url.Action("Index", "Story", new { genreId = genre.Id })'">
+                        <div class="genre-icon-wrapper" style="background: @(genre.Color ?? "#E67E22")">
+                            <i class="@(string.IsNullOrEmpty(genre.Icon) ? "fas fa-book" : genre.Icon)"></i>
+                        </div>
+                        <h3 class="genre-name">@genre.Name</h3>
+                        <p class="genre-stats">
+                            <i class="fas fa-book-open me-1"></i> @(genre.Stories?.Count ?? 0) truyện
+                        </p>
+                        <form asp-controller="Genre" asp-action="ToggleFavoriteGenre" method="post" onclick="event.stopPropagation();">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="genreId" value="@genre.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill mt-2">
+                                <i class="fas fa-times me-1"></i>Bỏ yêu thích
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-star-half-alt fa-4x mb-4 text-muted"></i>
+            <h4>Chưa có thể loại yêu thích</h4>
+            <p class="text-muted">Hãy lưu các thể loại bạn quan tâm để xem lại nhanh hơn.</p>
+            <a asp-controller="Genre" asp-action="Index" class="btn-primary-custom mt-3">
+                <i class="fas fa-tags me-2"></i>Khám phá thể loại
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: var(--primary);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+    }
+
+    .genre-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+        transition: all .3s;
+    }
+
+        .genre-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+        }
+
+    .genre-icon-wrapper {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .genre-name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .genre-stats {
+        color: var(--secondary);
+        font-size: .85rem;
+    }
+</style>

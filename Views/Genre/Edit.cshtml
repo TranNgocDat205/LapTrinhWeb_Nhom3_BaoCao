@@ -1,0 +1,211 @@
+﻿@model DACS_Nhom3.Models.Genre
+@{
+    ViewData["Title"] = "Chỉnh sửa thể loại";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-warning text-white py-3 rounded-top-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-edit fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0 fw-bold">Chỉnh sửa thể loại</h3>
+                            <p class="mb-0 opacity-75">Cập nhật thông tin thể loại</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none" id="validationSummary"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">
+                                <i class="fas fa-tag text-warning me-1"></i> Tên thể loại <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control form-control-lg" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">
+                                <i class="fas fa-align-left text-info me-1"></i> Mô tả
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Icon" class="form-label fw-bold">
+                                    <i class="fab fa-font-awesome me-1"></i> Icon
+                                </label>
+                                <input asp-for="Icon" class="form-control" placeholder="fas fa-book" />
+                                <small class="text-muted">
+                                    <a href="https://fontawesome.com/icons" target="_blank">Font Awesome</a> class
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Color" class="form-label fw-bold">
+                                    <i class="fas fa-palette me-1"></i> Màu sắc
+                                </label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input asp-for="Color" type="color" class="form-control form-control-color" style="width: 60px; height: 45px;" />
+                                    <input type="text" id="colorText" class="form-control" placeholder="#E67E22" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SortOrder" class="form-label fw-bold">
+                                <i class="fas fa-sort-numeric-down me-1"></i> Thứ tự hiển thị
+                            </label>
+                            <input asp-for="SortOrder" type="number" class="form-control" />
+                            <small class="text-muted">Số càng nhỏ càng hiển thị lên đầu</small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">
+                                <i class="fas fa-check-circle text-success me-1"></i> Kích hoạt thể loại
+                            </label>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a asp-action="Manage" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="fas fa-arrow-left me-2"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-warning px-5 py-2">
+                                <i class="fas fa-save me-2"></i> Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="card border-0 shadow-lg rounded-4 mt-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-eye me-2"></i> Xem trước
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="genre-preview" id="genrePreview">
+                        <div class="genre-icon-preview" id="previewIcon" style="background: #E67E22">
+                            <i class="fas fa-book fa-2x text-white"></i>
+                        </div>
+                        <h4 class="mt-3" id="previewName">Tên thể loại</h4>
+                        <p class="text-muted" id="previewDescription">Mô tả thể loại sẽ hiển thị ở đây</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #E67E22 0%, #d35400 100%);
+    }
+
+    .form-control:focus {
+        border-color: #E67E22;
+        box-shadow: 0 0 0 0.2rem rgba(230,126,34,0.15);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #E67E22, #d35400);
+        border: none;
+        color: white;
+        transition: all 0.3s;
+    }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.4);
+            color: white;
+        }
+
+    .genre-preview {
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 20px;
+    }
+
+    .genre-icon-preview {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 25px;
+        transition: all 0.3s;
+    }
+</style>
+
+<script>
+    // Đồng bộ màu sắc
+    const colorPicker = document.querySelector('#Color');
+    const colorText = document.querySelector('#colorText');
+
+    // Set initial color text
+    if (colorPicker.value) {
+        colorText.value = colorPicker.value;
+    } else {
+        colorText.value = '#E67E22';
+    }
+
+    colorPicker.addEventListener('change', function() {
+        colorText.value = this.value;
+        updatePreview();
+    });
+
+    colorText.addEventListener('input', function() {
+        colorPicker.value = this.value;
+        updatePreview();
+    });
+
+    // Live preview
+    const nameInput = document.querySelector('#Name');
+    const descriptionInput = document.querySelector('#Description');
+    const iconInput = document.querySelector('#Icon');
+
+    function updatePreview() {
+        // Update color
+        const previewIcon = document.getElementById('previewIcon');
+        previewIcon.style.background = colorPicker.value;
+
+        // Update name
+        document.getElementById('previewName').textContent = nameInput.value || 'Tên thể loại';
+
+        // Update description
+        document.getElementById('previewDescription').textContent = descriptionInput.value || 'Mô tả thể loại sẽ hiển thị ở đây';
+
+        // Update icon
+        const iconClass = iconInput.value || 'fas fa-book';
+        previewIcon.innerHTML = `<i class="${iconClass} fa-2x text-white"></i>`;
+    }
+
+    nameInput.addEventListener('input', updatePreview);
+    descriptionInput.addEventListener('input', updatePreview);
+    iconInput.addEventListener('input', updatePreview);
+
+    // Initial preview
+    updatePreview();
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
