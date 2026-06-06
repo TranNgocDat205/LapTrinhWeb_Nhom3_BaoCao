@@ -1,0 +1,935 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ - DACS_Nhóm3";
+    ViewData["ShowNavbar"] = true;
+}
+
+<!-- Hero Section: thay 3D Vegeta bằng video anime -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7" data-aos="fade-up">
+                <div class="hero-kicker">
+                    <i class="fas fa-bolt"></i>
+                    Nền tảng đọc truyện online dành cho fan anime/manga
+                </div>
+                <h1 class="hero-title">
+                    Khám Phá Thế Giới <br>
+                    <span>Truyện Bất Tận</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Đọc truyện mới mỗi ngày, khám phá thể loại yêu thích, lưu truyện đang đọc
+                    và nhận thưởng điểm danh để mở khóa trải nghiệm hấp dẫn hơn.
+                </p>
+                <div class="hero-actions">
+                    <a asp-controller="Story" asp-action="Index" class="btn-primary-custom">
+                        <i class="fas fa-book-open me-2"></i>Đọc ngay
+                    </a>
+                    <a asp-controller="Genre" asp-action="Index" class="btn-outline-custom">
+                        <i class="fas fa-tags me-2"></i>Thể loại
+                    </a>
+                    <a asp-controller="Genre" asp-action="RandomToday" class="btn-ghost-custom">
+                        <i class="fas fa-dice me-2"></i>Gợi ý hôm nay
+                    </a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">@ViewBag.TotalStories</span>
+                        <span class="stat-label">Truyện</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">@ViewBag.TotalGenres</span>
+                        <span class="stat-label">Thể loại</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">@ViewBag.TotalViews</span>
+                        <span class="stat-label">Lượt xem</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5" data-aos="fade-left">
+                <div class="anime-video-card">
+                    <div class="video-card-header hover-video-ui">
+                        <span><i class="fas fa-play-circle"></i> Anime Trailer</span>
+                        <small>Attack on Titan</small>
+                    </div>
+                    <div class="anime-video-frame">
+                        <iframe title="Attack on Titan trailer"
+                                src="https://www.youtube.com/embed/MGRm4IzK1SQ?autoplay=1&mute=1&loop=1&playlist=MGRm4IzK1SQ&controls=1&rel=0&modestbranding=1"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="video-card-footer hover-video-ui">
+                        <span><i class="fas fa-volume-mute"></i> Tự phát không tiếng</span>
+                        <a href="https://www.youtube.com/watch?v=MGRm4IzK1SQ" target="_blank" rel="noopener">Xem trên YouTube</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Các tính năng còn thiếu theo kiểu nền tảng truyện chuyên nghiệp -->
+<section class="feature-strip">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6" data-aos="fade-up">
+                <a asp-controller="Story" asp-action="Index" class="feature-tile">
+                    <span class="feature-icon"><i class="fas fa-search"></i></span>
+                    <strong>Tìm truyện nhanh</strong>
+                    <small>Lọc theo tên, tác giả, thể loại</small>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="80">
+                <a asp-controller="Genre" asp-action="RandomToday" class="feature-tile">
+                    <span class="feature-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+                    <strong>Gợi ý hôm nay</strong>
+                    <small>Không biết đọc gì, để hệ thống chọn</small>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="160">
+                <a asp-controller="Story" asp-action="MyFavorites" class="feature-tile">
+                    <span class="feature-icon"><i class="fas fa-heart"></i></span>
+                    <strong>Tủ truyện cá nhân</strong>
+                    <small>Lưu truyện yêu thích để đọc tiếp</small>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="240">
+                <a asp-controller="Reward" asp-action="Index" class="feature-tile">
+                    <span class="feature-icon"><i class="fas fa-gem"></i></span>
+                    <strong>Điểm danh nhận quà</strong>
+                    <small>Nhận kim cương miễn phí hằng ngày</small>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Truyện mới cập nhật -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">Cập nhật liên tục</span>
+            <h2 class="section-title">Truyện Mới Cập Nhật</h2>
+            <p class="section-subtitle">Những câu chuyện mới nhất được thêm vào thư viện</p>
+        </div>
+        <div class="row">
+            @if (ViewBag.LatestStories != null && ((IEnumerable<dynamic>)ViewBag.LatestStories).Any())
+            {
+                @foreach (var story in ViewBag.LatestStories)
+                {
+                    <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="@(100 * (ViewBag.LatestStories.IndexOf(story) % 4))">
+                        <div class="story-card">
+                            <div class="story-card-img-wrapper">
+                                <img src="@(story.CoverImageUrl ?? "/images/default-cover.jpg")" class="story-card-img" alt="@story.Title">
+                                <span class="story-card-badge">Mới</span>
+                            </div>
+                            <div class="story-card-body">
+                                <h3 class="story-title">
+                                    <a asp-controller="Story" asp-action="Details" asp-route-id="@story.Id">@story.Title</a>
+                                </h3>
+                                <div class="story-author">
+                                    <i class="fas fa-user"></i> @(string.IsNullOrEmpty(story.Author) ? "Không rõ" : story.Author)
+                                </div>
+                                <p class="story-description">@(story.Description?.Length > 100 ? story.Description.Substring(0, 100) + "..." : story.Description)</p>
+                                <div class="story-stats">
+                                    <span><i class="fas fa-eye"></i> @story.Views</span>
+                                    <span><i class="fas fa-heart"></i> @story.Likes</span>
+                                    <span><i class="fas fa-clock"></i> @story.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <p>Chưa có truyện nào.</p>
+                </div>
+            }
+        </div>
+        <div class="text-center mt-4">
+            <a asp-controller="Story" asp-action="Index" class="btn-primary-custom">
+                Xem tất cả <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Khối trải nghiệm kiểu POPS: đề xuất, thư viện, đồng bộ -->
+<section class="experience-section">
+    <div class="container">
+        <div class="experience-card" data-aos="zoom-in">
+            <div>
+                <span class="section-eyebrow light">Trải nghiệm đọc truyện tốt hơn</span>
+                <h2>Thiết kế thêm các tính năng còn thiếu để website giống nền tảng comic hiện đại</h2>
+                <p>
+                    Bổ sung các lối tắt quan trọng: tìm kiếm, gợi ý truyện, tủ truyện cá nhân,
+                    lịch sử đọc, điểm danh nhận thưởng và khu vực truyện nổi bật.
+                </p>
+            </div>
+            <div class="experience-grid">
+                <div><i class="fas fa-layer-group"></i><span>Kho truyện đa thể loại</span></div>
+                <div><i class="fas fa-robot"></i><span>Gợi ý thông minh</span></div>
+                <div><i class="fas fa-bookmark"></i><span>Lưu truyện đang đọc</span></div>
+                <div><i class="fas fa-gift"></i><span>Nhiệm vụ nhận quà</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Thể loại nổi bật -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">Khám phá</span>
+            <h2 class="section-title">Thể Loại Nổi Bật</h2>
+            <p class="section-subtitle">Khám phá các thể loại truyện được yêu thích nhất</p>
+        </div>
+        <div class="row">
+            @if (ViewBag.FeaturedGenres != null && ((IEnumerable<dynamic>)ViewBag.FeaturedGenres).Any())
+            {
+                @foreach (var genre in ViewBag.FeaturedGenres)
+                {
+                    <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="@(100 * (ViewBag.FeaturedGenres.IndexOf(genre) % 4))">
+                        <div class="genre-card" onclick="location.href='@Url.Action("Index", "Story", new { genreId = genre.Id })'">
+                            <div class="genre-icon">
+                                <i class="@(string.IsNullOrEmpty(genre.Icon) ? "fas fa-book" : genre.Icon)"></i>
+                            </div>
+                            <h3 class="genre-name">@genre.Name</h3>
+                            <p class="genre-count">@(genre.Stories?.Count ?? 0) truyện</p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Truyện xem nhiều -->
+<section class="section-padding ranking-section">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <span class="section-eyebrow">Bảng xếp hạng</span>
+            <h2 class="section-title">Truyện Xem Nhiều Nhất</h2>
+            <p class="section-subtitle">Những câu chuyện đang được quan tâm nhất</p>
+        </div>
+        <div class="row">
+            @if (ViewBag.PopularStories != null && ((IEnumerable<dynamic>)ViewBag.PopularStories).Any())
+            {
+                @foreach (var story in ViewBag.PopularStories)
+                {
+                    <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="@(100 * (ViewBag.PopularStories.IndexOf(story) % 4))">
+                        <div class="story-card hot-card">
+                            <div class="story-card-img-wrapper">
+                                <img src="@(story.CoverImageUrl ?? "/images/default-cover.jpg")" class="story-card-img" alt="@story.Title">
+                                <span class="story-card-badge">Hot</span>
+                            </div>
+                            <div class="story-card-body">
+                                <h3 class="story-title">
+                                    <a asp-controller="Story" asp-action="Details" asp-route-id="@story.Id">@story.Title</a>
+                                </h3>
+                                <div class="story-author">
+                                    <i class="fas fa-user"></i> @(string.IsNullOrEmpty(story.Author) ? "Không rõ" : story.Author)
+                                </div>
+                                <div class="story-stats">
+                                    <span><i class="fas fa-eye"></i> @story.Views</span>
+                                    <span><i class="fas fa-heart"></i> @story.Likes</span>
+                                    <span><i class="fas fa-clock"></i> @story.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    :root {
+        --home-primary: #ff6b35;
+        --home-primary-2: #f59e0b;
+        --home-danger: #ef4444;
+        --home-dark: #111827;
+        --home-muted: #6b7280;
+        --home-card: #ffffff;
+        --home-border: rgba(17, 24, 39, .09);
+    }
+
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+        background: #f8fafc;
+    }
+
+    .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        background: linear-gradient(90deg, rgba(8, 13, 26, .92) 0%, rgba(10, 15, 28, .76) 50%, rgba(10, 15, 28, .9) 100%), url('https://gamek.mediacdn.vn/133514250583805952/2021/12/21/jum1-1640059810743904654032.jpg');
+        background-size: cover;
+        background-position: center;
+        padding: 86px 0 70px;
+        color: #fff;
+    }
+
+        .hero::before,
+        .hero::after {
+            content: '';
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+            filter: blur(20px);
+        }
+
+        .hero::before {
+            width: 420px;
+            height: 420px;
+            right: -110px;
+            top: 70px;
+            background: radial-gradient(circle, rgba(255, 107, 53, .34), transparent 68%);
+            animation: heroOrb 7s ease-in-out infinite alternate;
+        }
+
+        .hero::after {
+            width: 300px;
+            height: 300px;
+            left: -90px;
+            bottom: 30px;
+            background: radial-gradient(circle, rgba(245, 158, 11, .22), transparent 70%);
+            animation: heroOrb 8s ease-in-out infinite alternate-reverse;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1260px;
+        }
+
+        .hero .row {
+            row-gap: 36px;
+        }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        padding: 8px 14px;
+        border: 1px solid rgba(255,255,255,.22);
+        border-radius: 999px;
+        background: rgba(255,255,255,.10);
+        color: rgba(255,255,255,.92);
+        font-weight: 800;
+        backdrop-filter: blur(12px);
+    }
+
+    .hero-title,
+    .hero-title span,
+    .hero-subtitle,
+    .stat-number,
+    .stat-label {
+        background: transparent !important;
+        -webkit-text-fill-color: initial !important;
+        text-shadow: none !important;
+    }
+
+    .hero-title {
+        color: #fff !important;
+        font-size: clamp(2.45rem, 5vw, 4.9rem);
+        line-height: 1.06;
+        font-weight: 900;
+        letter-spacing: -.04em;
+        margin-bottom: 22px;
+    }
+
+        .hero-title span {
+            color: var(--home-primary-2) !important;
+        }
+
+    .hero-subtitle {
+        max-width: 700px;
+        color: rgba(255,255,255,.9) !important;
+        font-size: 1.08rem;
+        line-height: 1.75;
+        margin-bottom: 28px;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary-custom,
+    .btn-outline-custom,
+    .btn-ghost-custom {
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        border-radius: 999px;
+        padding: 12px 24px;
+        font-weight: 800;
+        text-decoration: none !important;
+        transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+    }
+
+    .btn-primary-custom {
+        color: #fff !important;
+        background: linear-gradient(135deg, var(--home-primary), var(--home-danger)) !important;
+        border: 0;
+        box-shadow: 0 16px 34px rgba(249, 115, 22, .28);
+    }
+
+    .btn-outline-custom,
+    .btn-ghost-custom {
+        color: #fff !important;
+        background: rgba(255,255,255,.12) !important;
+        border: 1px solid rgba(255,255,255,.45);
+        backdrop-filter: blur(12px);
+    }
+
+    .btn-ghost-custom {
+        background: rgba(245,158,11,.16) !important;
+    }
+
+        .btn-primary-custom:hover,
+        .btn-outline-custom:hover,
+        .btn-ghost-custom:hover {
+            transform: translateY(-2px);
+            color: #fff !important;
+        }
+
+    .hero-stats {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(112px, 1fr)) !important;
+        gap: 14px !important;
+        max-width: 520px;
+        margin-top: 34px;
+    }
+
+    .stat-item {
+        width: auto !important;
+        padding: 16px 18px;
+        border-radius: 20px;
+        background: rgba(255,255,255,.10) !important;
+        border: 1px solid rgba(255,255,255,.18);
+        backdrop-filter: blur(12px);
+        min-width: 0;
+    }
+
+    .stat-number {
+        display: block;
+        color: #fff !important;
+        font-size: 1.75rem;
+        line-height: 1;
+        font-weight: 900;
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        display: block;
+        color: rgba(255,255,255,.82) !important;
+        font-size: .92rem;
+    }
+
+    .anime-video-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 30px;
+        background: rgba(7, 12, 23, .78);
+        border: 1px solid rgba(255,255,255,.22);
+        box-shadow: 0 28px 80px rgba(0,0,0,.42);
+        backdrop-filter: blur(12px);
+        animation: floatVideo 4.8s ease-in-out infinite;
+    }
+
+        .anime-video-card::before {
+            content: '';
+            position: absolute;
+            inset: -40%;
+            background: conic-gradient(from 180deg, transparent, rgba(255,107,53,.25), transparent, rgba(245,158,11,.20), transparent);
+            animation: rotateGlow 8s linear infinite;
+            pointer-events: none;
+        }
+
+    .video-card-header,
+    .video-card-footer,
+    .anime-video-frame {
+        position: relative;
+        z-index: 2;
+    }
+
+    .video-card-header,
+    .video-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        color: #fff;
+        background: rgba(0,0,0,.22);
+    }
+
+        .video-card-header span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 900;
+        }
+
+        .video-card-header small,
+        .video-card-footer span,
+        .video-card-footer a {
+            color: rgba(255,255,255,.78) !important;
+            font-size: .9rem;
+            text-decoration: none;
+        }
+
+    .anime-video-frame {
+        aspect-ratio: 16 / 9;
+        margin: 0 10px;
+        overflow: hidden;
+        border-radius: 22px;
+        background: #000;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
+    }
+
+        .anime-video-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+        }
+
+    .feature-strip {
+        position: relative;
+        z-index: 3;
+        margin-top: -42px;
+        padding-bottom: 34px;
+    }
+
+        .feature-strip .container,
+        .section-padding .container,
+        .experience-section .container {
+            max-width: 1260px;
+        }
+
+    .feature-tile {
+        height: 100%;
+        display: block;
+        padding: 20px;
+        border-radius: 24px;
+        background: rgba(255,255,255,.94);
+        border: 1px solid var(--home-border);
+        box-shadow: 0 18px 46px rgba(17,24,39,.10);
+        text-decoration: none !important;
+        transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+        .feature-tile:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 24px 56px rgba(17,24,39,.14);
+        }
+
+    .feature-icon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 14px;
+        border-radius: 16px;
+        color: #fff;
+        background: linear-gradient(135deg, var(--home-primary), var(--home-primary-2));
+        box-shadow: 0 12px 24px rgba(245, 158, 11, .24);
+    }
+
+    .feature-tile strong {
+        display: block;
+        color: var(--home-dark);
+        font-size: 1.05rem;
+        font-weight: 900;
+        margin-bottom: 4px;
+    }
+
+    .feature-tile small {
+        color: var(--home-muted);
+    }
+
+    .section-padding {
+        padding: 70px 0;
+        background: #fff;
+        scroll-margin-top: 96px;
+    }
+
+        .section-padding.bg-light {
+            background: #f8fafc !important;
+        }
+
+    .section-header {
+        margin-bottom: 34px;
+        text-align: center;
+    }
+
+    .section-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        color: var(--home-primary);
+        background: rgba(255,107,53,.10);
+        font-weight: 900;
+        font-size: .85rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+        .section-eyebrow.light {
+            color: #fff;
+            background: rgba(255,255,255,.14);
+        }
+
+    .section-title {
+        color: var(--home-dark) !important;
+        font-size: clamp(1.8rem, 3vw, 2.55rem);
+        font-weight: 900;
+        letter-spacing: -.025em;
+        margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+        color: var(--home-muted) !important;
+        font-size: 1.02rem;
+        margin-bottom: 0;
+    }
+
+    .section-padding .row {
+        row-gap: 28px;
+    }
+
+    .story-card,
+    .genre-card {
+        height: 100%;
+        overflow: hidden;
+        border-radius: 22px;
+        background: var(--home-card);
+        border: 1px solid var(--home-border);
+        box-shadow: 0 14px 34px rgba(17, 24, 39, .07);
+        transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+        .story-card:hover,
+        .genre-card:hover {
+            transform: translateY(-7px) scale(1.01);
+            box-shadow: 0 22px 50px rgba(17, 24, 39, .13);
+        }
+
+    .story-card-img-wrapper {
+        position: relative;
+        overflow: hidden;
+        background: #eef2f7;
+    }
+
+        .story-card-img-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,.34), transparent 75%);
+            transform: translateX(-120%);
+            transition: .75s ease;
+        }
+
+    .story-card:hover .story-card-img-wrapper::after {
+        transform: translateX(120%);
+    }
+
+    .story-card-img {
+        width: 100%;
+        height: 290px;
+        object-fit: cover;
+        display: block;
+        transition: transform .3s ease;
+    }
+
+    .story-card:hover .story-card-img {
+        transform: scale(1.04);
+    }
+
+    .story-card-badge {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 5px 11px;
+        border-radius: 999px;
+        color: #fff;
+        background: linear-gradient(135deg, var(--home-primary), var(--home-danger));
+        font-size: .78rem;
+        font-weight: 800;
+        box-shadow: 0 10px 22px rgba(239, 68, 68, .24);
+    }
+
+    .story-card-body {
+        padding: 18px 18px 20px;
+    }
+
+    .story-title {
+        margin: 0 0 10px;
+        font-size: 1.25rem;
+        line-height: 1.28;
+        font-weight: 900;
+    }
+
+        .story-title a {
+            color: var(--home-dark) !important;
+            text-decoration: none;
+        }
+
+            .story-title a:hover {
+                color: var(--home-primary) !important;
+            }
+
+    .story-author,
+    .story-description,
+    .story-stats {
+        color: #4b5563 !important;
+    }
+
+    .story-author {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: .94rem;
+        margin-bottom: 8px;
+    }
+
+    .story-description {
+        min-height: 48px;
+        margin-bottom: 12px;
+        line-height: 1.55;
+    }
+
+    .story-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        font-size: .9rem;
+    }
+
+    .experience-section {
+        padding: 0 0 70px;
+        background: #fff;
+    }
+
+    .experience-card {
+        display: grid;
+        grid-template-columns: 1.25fr .95fr;
+        gap: 28px;
+        align-items: center;
+        padding: 34px;
+        border-radius: 30px;
+        color: #fff;
+        background: radial-gradient(circle at 12% 20%, rgba(255,255,255,.16), transparent 28%), linear-gradient(135deg, #111827, #1f2937 58%, #7c2d12);
+        box-shadow: 0 24px 60px rgba(17,24,39,.16);
+        overflow: hidden;
+    }
+
+        .experience-card h2 {
+            font-weight: 900;
+            letter-spacing: -.03em;
+            margin-bottom: 12px;
+        }
+
+        .experience-card p {
+            color: rgba(255,255,255,.82);
+            margin-bottom: 0;
+            line-height: 1.7;
+        }
+
+    .experience-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+        .experience-grid div {
+            min-height: 104px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.18);
+        }
+
+        .experience-grid i {
+            color: #fbbf24;
+            font-size: 1.4rem;
+        }
+
+        .experience-grid span {
+            font-weight: 800;
+        }
+
+    .genre-card {
+        padding: 28px 22px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .genre-icon {
+        width: 66px;
+        height: 66px;
+        margin: 0 auto 16px;
+        display: grid;
+        place-items: center;
+        border-radius: 20px;
+        color: #fff;
+        background: linear-gradient(135deg, var(--home-primary), var(--home-primary-2));
+        font-size: 1.65rem;
+    }
+
+    .genre-name {
+        color: var(--home-dark) !important;
+        font-size: 1.2rem;
+        font-weight: 900;
+        margin-bottom: 6px;
+    }
+
+    .genre-count {
+        color: var(--home-muted) !important;
+        margin: 0;
+    }
+
+    .ranking-section {
+        background: linear-gradient(180deg, #fff 0%, #fff7ed 100%);
+    }
+
+    .hot-card {
+        border-color: rgba(245,158,11,.25);
+    }
+
+    @@keyframes heroOrb {
+        from {
+            transform: translate(0, 0) scale(1);
+        }
+
+        to {
+            transform: translate(-70px, 48px) scale(1.12);
+        }
+    }
+
+    @@keyframes floatVideo {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @@keyframes rotateGlow {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .hero {
+            min-height: auto;
+            padding: 70px 0 74px;
+        }
+
+        .feature-strip {
+            margin-top: -34px;
+        }
+
+        .anime-video-card {
+            max-width: 680px;
+            margin: 10px auto 0;
+        }
+
+        .experience-card {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .hero {
+            padding: 48px 0 66px;
+        }
+
+        .hero-title {
+            font-size: 2.35rem;
+        }
+
+        .hero-stats {
+            grid-template-columns: 1fr !important;
+            max-width: 100%;
+        }
+
+        .video-card-header,
+        .video-card-footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .anime-video-card,
+        .experience-card {
+            border-radius: 22px;
+        }
+
+        .experience-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .story-card-img {
+            height: 260px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>
+
+
+<style>
+    /* ===== VIDEO HOVER FIX ===== */
+
+    .anime-video-card {
+        position: relative;
+    }
+
+    .hover-video-ui {
+        opacity: 0;
+        visibility: hidden;
+        transition: all .3s ease;
+    }
+
+    .anime-video-card:hover .hover-video-ui {
+        opacity: 1;
+        visibility: visible;
+    }
+</style>
+

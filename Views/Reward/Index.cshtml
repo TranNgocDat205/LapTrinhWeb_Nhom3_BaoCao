@@ -1,0 +1,298 @@
+﻿@model DACS_Nhom3.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Điểm danh hằng ngày";
+    bool todayChecked = ViewBag.TodayChecked == true;
+    bool todaySpun = ViewBag.TodaySpun == true;
+    bool isAdmin = ViewBag.IsAdmin == true;
+    int needDays = ViewBag.NeedDays ?? 7;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-body p-5 text-center">
+                    <div class="display-3 mb-3">💎</div>
+
+                    <h1 class="fw-bold mb-2">Điểm danh hằng ngày</h1>
+                    <p class="text-muted mb-4">Điểm danh liên tục 7 ngày để nhận 10 kim cương. Mỗi lượt tải PDF tốn 5 kim cương.</p>
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success rounded-4">@TempData["Success"]</div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger rounded-4">@TempData["Error"]</div>
+                    }
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="reward-box">
+                                <div class="fs-2">💎</div>
+                                <div id="diamondCount" class="fw-bold fs-4">@Model.Diamonds</div>
+                                <div class="text-muted">Kim cương hiện có</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="reward-box">
+                                <div class="fs-2">🔥</div>
+                                <div class="fw-bold fs-4">@Model.CheckInStreak</div>
+                                <div class="text-muted">Ngày liên tục</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="reward-box">
+                                <div class="fs-2">🎁</div>
+                                <div id="freeDownloadCount" class="fw-bold fs-4">@Model.FreeDownloads</div>
+                                <div class="text-muted">Lượt tải miễn phí</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-controller="Reward" asp-action="CheckIn" method="post" class="mb-3">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning btn-lg rounded-pill px-5" @(todayChecked ? "disabled" : "")>
+                            @(todayChecked ? "✅ Hôm nay đã điểm danh" : "📅 Điểm danh hôm nay")
+                        </button>
+                    </form>
+
+                    <div class="small text-muted">
+                        Còn @needDays ngày liên tục để nhận 10 kim cương. Nếu bỏ lỡ 1 ngày, chuỗi điểm danh sẽ tính lại từ đầu.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div id="luckyWheelCard" class="card border-0 shadow-lg rounded-4 overflow-hidden lucky-card @(todaySpun ? "d-none" : "")">
+                <div class="card-body p-5 text-center">
+                    <h2 class="fw-bold mb-2">🎁 Vòng quay may mắn hôm nay</h2>
+                    <p class="text-muted mb-4">
+                        @(isAdmin ? "Tài khoản admin được quay vô hạn để kiểm thử." : "Mỗi tài khoản được quay 1 lần mỗi ngày.")
+                    </p>
+
+                    <form id="spinTokenForm" class="d-none">
+                        @Html.AntiForgeryToken()
+                    </form>
+
+                    <div class="wheel-area mx-auto mb-4">
+                        <div class="wheel-pointer"></div>
+                        <div id="luckyWheel" class="lucky-wheel">
+                            <div class="wheel-label label-1">😢<br />May mắn<br />lần sau</div>
+                            <div class="wheel-label label-2">💎<br />1</div>
+                            <div class="wheel-label label-3">💎<br />2</div>
+                            <div class="wheel-label label-4">💎<br />3</div>
+                            <div class="wheel-label label-5">🎁<br />Free</div>
+                        </div>
+                    </div>
+
+                    <button id="spinButton" type="button" class="btn btn-danger btn-lg rounded-pill px-5">
+                        🎲 QUAY NGAY
+                    </button>
+
+                    <div id="spinResult" class="alert alert-info rounded-4 mt-4 d-none"></div>
+                </div>
+            </div>
+
+            @if (todaySpun && !isAdmin)
+            {
+                <div class="alert alert-secondary rounded-4 text-center shadow-sm">
+                    Hôm nay bạn đã quay vòng quay may mắn rồi. Hãy quay lại vào ngày mai nhé!
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .reward-box {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 22px 12px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .wheel-area {
+        position: relative;
+        width: 330px;
+        height: 330px;
+    }
+
+    .wheel-pointer {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 18px solid transparent;
+        border-right: 18px solid transparent;
+        border-top: 42px solid #ef4444;
+        z-index: 5;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,.25));
+    }
+
+    .lucky-wheel {
+        width: 330px;
+        height: 330px;
+        border-radius: 50%;
+        border: 12px solid #f59e0b;
+        box-shadow: 0 20px 45px rgba(245, 158, 11, .35);
+        position: relative;
+        overflow: hidden;
+        background: conic-gradient( #ef4444 0deg 72deg, #3b82f6 72deg 144deg, #10b981 144deg 216deg, #8b5cf6 216deg 288deg, #f97316 288deg 360deg );
+        transition: transform 5s cubic-bezier(.12,.72,.18,1);
+    }
+
+        .lucky-wheel::after {
+            content: "";
+            position: absolute;
+            inset: 118px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 8px #f8fafc;
+        }
+
+    .wheel-label {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 90px;
+        margin-left: -45px;
+        margin-top: -150px;
+        text-align: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 15px;
+        line-height: 1.15;
+        transform-origin: 45px 150px;
+        text-shadow: 0 2px 6px rgba(0,0,0,.35);
+        z-index: 2;
+    }
+
+    .label-1 {
+        transform: rotate(36deg);
+    }
+
+    .label-2 {
+        transform: rotate(108deg);
+    }
+
+    .label-3 {
+        transform: rotate(180deg);
+    }
+
+    .label-4 {
+        transform: rotate(252deg);
+    }
+
+    .label-5 {
+        transform: rotate(324deg);
+    }
+
+    .lucky-card.slide-away {
+        animation: slideAway .8s ease forwards;
+    }
+
+  
+
+    {
+        transform: translateY(90px);
+        opacity: 0;
+    }
+
+    }
+
+    .dark-mode .reward-box,
+    .dark-mode .lucky-wheel::after {
+        background: #1e293b !important;
+        border-color: #334155 !important;
+        color: #f8fafc !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const spinButton = document.getElementById("spinButton");
+        const luckyWheel = document.getElementById("luckyWheel");
+        const spinResult = document.getElementById("spinResult");
+        const luckyWheelCard = document.getElementById("luckyWheelCard");
+        const diamondCount = document.getElementById("diamondCount");
+        const freeDownloadCount = document.getElementById("freeDownloadCount");
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        function token() {
+            const input = document.querySelector('#spinTokenForm input[name="__RequestVerificationToken"]');
+            return input ? input.value : '';
+        }
+
+        function targetRotation(segmentIndex) {
+            // 5 phần, mỗi phần 72 độ. Kim chỉ nằm trên đỉnh, nên dừng giữa phần thưởng.
+            const segmentSize = 72;
+            const centerAngle = (segmentIndex * segmentSize) + (segmentSize / 2);
+            const extraRounds = 6 * 360;
+            return extraRounds + (360 - centerAngle);
+        }
+
+        if (spinButton) {
+            spinButton.addEventListener("click", async function () {
+                if (isSpinning) return;
+                isSpinning = true;
+                spinButton.disabled = true;
+                spinButton.innerHTML = "Đang quay...";
+                spinResult.classList.add("d-none");
+
+                try {
+                    const response = await fetch("/Reward/Spin", {
+                        method: "POST",
+                        headers: {
+                            "RequestVerificationToken": token()
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        spinResult.className = "alert alert-warning rounded-4 mt-4";
+                        spinResult.innerHTML = data.message || "Bạn đã quay hôm nay rồi.";
+                        spinButton.disabled = true;
+                        return;
+                    }
+
+                    currentRotation += targetRotation(data.segmentIndex);
+                    luckyWheel.style.transform = `rotate(${currentRotation}deg)`;
+
+                    setTimeout(function () {
+                        spinResult.className = "alert alert-success rounded-4 mt-4";
+                        spinResult.innerHTML = data.message;
+
+                        if (diamondCount) diamondCount.innerText = data.diamonds;
+                        if (freeDownloadCount) freeDownloadCount.innerText = data.freeDownloads;
+
+                        const navDiamond = document.getElementById("navDiamondCount");
+                        const navFreeDownload = document.getElementById("navFreeDownloadCount");
+                        if (navDiamond) navDiamond.innerText = data.diamonds;
+                        if (navFreeDownload) navFreeDownload.innerText = data.freeDownloads;
+
+                        setTimeout(function () {
+                            luckyWheelCard.classList.add("slide-away");
+                            setTimeout(function () {
+                                luckyWheelCard.classList.add("d-none");
+                            }, 850);
+                        }, 1800);
+                    }, 5200);
+                } catch (e) {
+                    spinResult.className = "alert alert-danger rounded-4 mt-4";
+                    spinResult.innerHTML = "Có lỗi xảy ra khi quay. Vui lòng thử lại.";
+                    spinButton.disabled = false;
+                    spinButton.innerHTML = "🎲 QUAY NGAY";
+                    isSpinning = false;
+                }
+            });
+        }
+    </script>
+}
