@@ -1,0 +1,176 @@
+﻿@model DACS_Nhom3.Models.Story
+@{
+    ViewData["Title"] = "Đăng truyện mới";
+    var genres = ViewBag.Genres as List<DACS_Nhom3.Models.Genre>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-primary text-white py-3 rounded-top-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-plus-circle fa-2x me-3"></i>
+                        <div>
+                            <h3 class="mb-0 fw-bold">Đăng truyện mới</h3>
+                            <p class="mb-0 opacity-75">Điền đầy đủ thông tin để thêm truyện vào thư viện</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Tên truyện -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold">
+                                <i class="fas fa-heading text-warning me-1"></i> Tên truyện <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Title" class="form-control" placeholder="Nhập tên truyện..." />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Tác giả -->
+                        <div class="mb-3">
+                            <label asp-for="Author" class="form-label fw-bold">
+                                <i class="fas fa-user text-info me-1"></i> Tác giả
+                            </label>
+                            <input asp-for="Author" class="form-control" placeholder="Nhập tên tác giả..." />
+                            <span asp-validation-for="Author" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Ảnh bìa -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-image text-primary me-1"></i> Ảnh bìa
+                            </label>
+                            <input type="file" name="coverImage" class="form-control" accept="image/*" />
+                            <small class="text-muted">Hỗ trợ: JPG, PNG, GIF (Tối đa 5MB)</small>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">
+                                <i class="fas fa-align-left text-secondary me-1"></i> Mô tả <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả ngắn gọn về truyện..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Thể loại -->
+                        <div class="mb-3">
+                            <label asp-for="GenreId" class="form-label fw-bold">
+                                <i class="fas fa-tag text-success me-1"></i> Thể loại <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="GenreId" class="form-select">
+                                <option value="">-- Chọn thể loại --</option>
+                                @if (genres != null && genres.Any())
+                                {
+                                    foreach (var genre in genres)
+                                    {
+                                        <option value="@genre.Id">@genre.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="" disabled>Chưa có thể loại nào, vui lòng thêm thể loại trước</option>
+                                }
+                            </select>
+                            <span asp-validation-for="GenreId" class="text-danger small"></span>
+                            @if (genres == null || !genres.Any())
+                            {
+                                <div class="alert alert-warning mt-2">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Chưa có thể loại nào! Vui lòng <a asp-controller="Genre" asp-action="Manage" class="alert-link">thêm thể loại</a> trước khi đăng truyện.
+                                </div>
+                            }
+                        </div>
+
+                        <!-- File PDF truyện -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-file-pdf text-danger me-1"></i> File PDF truyện <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" name="pdfFile" class="form-control" accept="application/pdf,.pdf" required />
+                            <input type="hidden" asp-for="Content" value="PDF" />
+                            <span asp-validation-for="Content" class="text-danger small"></span>
+                            <small class="text-muted d-block mt-1">Chỉ chọn file .pdf, tối đa 50MB.</small>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="mb-3">
+                            <label asp-for="Status" class="form-label fw-bold">
+                                <i class="fas fa-toggle-on me-1"></i> Trạng thái
+                            </label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Published">✅ Đã đăng - Hiển thị công khai</option>
+                                <option value="Draft">📝 Nháp - Chưa hiển thị</option>
+                            </select>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                                <i class="fas fa-arrow-left me-2"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 py-2">
+                                <i class="fas fa-save me-2"></i> Đăng truyện
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (genres == null || !genres.Any())
+            {
+                <div class="card border-0 shadow-lg rounded-4 mt-4">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-tags fa-3x text-warning mb-3"></i>
+                        <h5>Chưa có thể loại nào!</h5>
+                        <p class="text-muted">Vui lòng thêm thể loại trước khi đăng truyện.</p>
+                        <a asp-controller="Genre" asp-action="Manage" class="btn btn-warning">
+                            <i class="fas fa-plus-circle me-2"></i> Thêm thể loại ngay
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #2D3E50 0%, #1a2a3a 100%);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #E67E22;
+        box-shadow: 0 0 0 0.2rem rgba(230,126,34,0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #E67E22, #d35400);
+        border: none;
+        transition: all 0.3s;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.4);
+        }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

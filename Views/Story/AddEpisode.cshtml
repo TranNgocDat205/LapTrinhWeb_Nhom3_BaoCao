@@ -1,0 +1,110 @@
+﻿@model DACS_Nhom3.Models.Story
+@{
+    ViewData["Title"] = "Thêm tập mới";
+    var genres = ViewBag.Genres as List<DACS_Nhom3.Models.Genre>;
+    var baseStoryId = ViewBag.BaseStoryId;
+    var baseStoryTitle = ViewBag.BaseStoryTitle as string;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-9 mx-auto">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header text-white py-4" style="background: linear-gradient(135deg,#1f3347,#f58220);">
+                    <h3 class="mb-1 fw-bold"><i class="fas fa-plus-circle me-2"></i>Thêm tập mới</h3>
+                    <p class="mb-0 opacity-75">Thêm tập vào bộ truyện: <strong>@baseStoryTitle</strong></p>
+                </div>
+
+                <div class="card-body p-4">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]</div>
+                    }
+
+                    <form asp-action="AddEpisode" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="baseStoryId" value="@baseStoryId" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-heading text-warning me-1"></i>Tên tập <span class="text-danger">*</span></label>
+                            <input name="title" class="form-control form-control-lg" value="@Model.Title" placeholder="Ví dụ: Doraemon Tập 2" required />
+                            <span class="text-danger small" data-valmsg-for="title"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold"><i class="fas fa-user text-info me-1"></i>Tác giả</label>
+                                <input name="author" class="form-control" value="@Model.Author" />
+                                <span class="text-danger small" data-valmsg-for="author"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold"><i class="fas fa-tag text-success me-1"></i>Thể loại <span class="text-danger">*</span></label>
+                                <select name="genreId" class="form-select" required>
+                                    <option value="">-- Chọn thể loại --</option>
+                                    @if (genres != null)
+                                    {
+                                        foreach (var genre in genres)
+                                        {
+                                            if (Model.GenreId == genre.Id)
+                                            {
+                                                <option value="@genre.Id" selected>@genre.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@genre.Id">@genre.Name</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                                <span class="text-danger small" data-valmsg-for="genreId"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-align-left text-secondary me-1"></i>Mô tả <span class="text-danger">*</span></label>
+                            <textarea name="description" class="form-control" rows="4" required>@Model.Description</textarea>
+                            <span class="text-danger small" data-valmsg-for="description"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-image text-primary me-1"></i>Ảnh bìa tập</label>
+                            <input type="file" name="coverImage" class="form-control" accept="image/*" />
+                            <small class="text-muted">Có thể bỏ trống để dùng ảnh bìa của bộ truyện.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-file-pdf text-danger me-1"></i>File PDF tập mới <span class="text-danger">*</span></label>
+                            <input type="file" name="pdfFile" class="form-control" accept="application/pdf,.pdf" required />
+                            <span class="text-danger small" data-valmsg-for="pdfFile"></span>
+                            <small class="text-muted">Chỉ chọn file .pdf, tối đa 50MB.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="fas fa-toggle-on me-1"></i>Trạng thái</label>
+                            <select name="status" class="form-select">
+                                <option value="Published" selected="@(Model.Status == DACS_Nhom3.Models.StoryStatus.Published)">Đã đăng</option>
+                                <option value="Draft" selected="@(Model.Status == DACS_Nhom3.Models.StoryStatus.Draft)">Nháp</option>
+                                <option value="Locked" selected="@(Model.Status == DACS_Nhom3.Models.StoryStatus.Locked)">Đã khóa</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Details" asp-route-id="@baseStoryId" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left me-1"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn px-4 text-white" style="background:#f58220;">
+                                <i class="fas fa-save me-1"></i>Lưu tập mới
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

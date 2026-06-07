@@ -1,0 +1,1278 @@
+﻿@model DACS_Nhom3.Models.Story
+@{
+    ViewData["Title"] = Model.Title;
+    bool isFavorite = ViewBag.IsFavorite ?? false;
+    bool isPdfStory = !string.IsNullOrWhiteSpace(Model.Content) && Model.Content.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+    var relatedStories = ViewBag.RelatedStories as List<DACS_Nhom3.Models.Story>;
+    var episodes = ViewBag.Episodes as List<DACS_Nhom3.Models.Story>;
+    string baseStoryTitle = ViewBag.BaseStoryTitle as string ?? Model.Title;
+    int? currentEpisodeNumber = ViewBag.CurrentEpisodeNumber as int?;
+    var currentUserEmail = User?.Identity?.Name ?? "";
+    bool isAdminUser = User.IsInRole("Admin") || currentUserEmail.Equals("admin@dacsnhom3.com", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="details-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="fas fa-home"></i></a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Story" asp-action="Index">Thư viện</a></li>
+                    @if (Model.Genre != null)
+                    {
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Story" asp-action="Index" asp-route-genreId="@Model.GenreId">@Model.Genre.Name</a>
+                        </li>
+                    }
+                    <li class="breadcrumb-item active">@Model.Title</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Story Header -->
+                <div class="story-header-card" data-aos="fade-up">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-4 col-5">
+                            <div class="cover-wrapper">
+                                <img src="@(Model.CoverImageUrl ?? "/images/default-cover.jpg")"
+                                     class="story-cover" alt="@Model.Title"
+                                     onerror="this.src='/images/default-cover.jpg'">
+                            </div>
+                        </div>
+                        <div class="col-md-9 col-sm-8 col-7">
+                            <div class="story-info">
+                                @if (Model.Genre != null)
+                                {
+                                    <span class="genre-tag">
+                                        <i class="@(Model.Genre.Icon ?? "fas fa-book") me-1"></i>@Model.Genre.Name
+                                    </span>
+                                }
+                                <h1 class="story-detail-title">@baseStoryTitle</h1>
+                                <div class="story-meta-row">
+                                    <span class="meta-item">
+                                        <i class="fas fa-user-pen"></i>
+                                        @(string.IsNullOrEmpty(Model.Author) ? "Không rõ" : Model.Author)
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar"></i>
+                                        @Model.CreatedAt.ToString("dd/MM/yyyy")
+                                    </span>
+                                    <span class="meta-item status-@Model.Status.ToString().ToLower()">
+                                        <i class="fas fa-circle"></i>
+                                        @(Model.Status == DACS_Nhom3.Models.StoryStatus.Published ? "Đã đăng" :
+                                                                                Model.Status == DACS_Nhom3.Models.StoryStatus.Draft ? "Nháp" : "Đã khóa")
+                                    </span>
+                                </div>
+
+                                <!-- Stats -->
+                                <div class="story-stats-row">
+                                    <div class="stat-box">
+                                        <i class="fas fa-eye"></i>
+                                        <span>@Model.Views</span>
+                                        <small>Lượt xem</small>
+                                    </div>
+                                    <div class="stat-box">
+                                        <i class="fas fa-heart"></i>
+                                        <span id="likeCount">@Model.Likes</span>
+                                        <small>Yêu thích</small>
+                                    </div>
+                                    <div class="stat-box">
+                                        <i class="fas fa-comments"></i>
+                                        <span>@(Model.Comments?.Count ?? 0)</span>
+                                        <small>Bình luận</small>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <a asp-controller="Story" asp-action="Read" asp-route-id="@Model.Id" class="btn-read">
+                                        <i class="fas fa-book-open me-2"></i>Đọc tập này
+                                    </a>
+
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <button class="btn-favorite @(isFavorite ? "active" : "")"
+                                                id="favoriteBtn" onclick="toggleFavorite(@Model.Id)">
+                                            <i class="fas fa-heart me-1"></i>
+                                            <span id="favText">@(isFavorite ? "Đã lưu" : "Lưu truyện")</span>
+                                        </button>
+
+                                        <button class="btn-like" id="likeBtn" onclick="toggleLike(@Model.Id)">
+                                            <i class="fas fa-thumbs-up me-1"></i>Thích
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Account" asp-action="Login" class="btn-favorite">
+                                            <i class="fas fa-heart me-1"></i>Lưu truyện
+                                        </a>
+                                    }
+
+                                    @if (isAdminUser)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-admin-edit">
+                                            <i class="fas fa-edit me-1"></i>Sửa
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="content-card" data-aos="fade-up">
+                    <h3 class="content-section-title"><i class="fas fa-align-left me-2"></i>Giới thiệu</h3>
+                    <p class="story-desc-text">@Model.Description</p>
+                </div>
+
+                <!-- Episodes -->
+                <div class="content-card" data-aos="fade-up">
+                    <div class="episode-header">
+                        <h3 class="content-section-title mb-0">
+                            <i class="fas fa-list-ol me-2"></i>Danh sách tập
+                            @if (episodes != null && episodes.Any())
+                            {
+                                <span class="comment-count-badge">@episodes.Count</span>
+                            }
+                        </h3>
+
+                        @if (isAdminUser)
+                        {
+                            <a asp-controller="Story" asp-action="AddEpisode" asp-route-id="@Model.Id"
+                               style="display:inline-flex !important; visibility:visible !important; opacity:1 !important; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; background:#16a34a; color:#fff !important; font-weight:800; text-decoration:none; box-shadow:0 8px 18px rgba(22,163,74,.25); position:relative; z-index:9999;">
+                                <i class="fas fa-plus-circle"></i> THÊM TẬP MỚI
+                            </a>
+                        }
+                    </div>
+
+                    @if (episodes != null && episodes.Any())
+                    {
+                        <div class="episode-list">
+                            @foreach (var ep in episodes)
+                            {
+                                var epNoMatch = System.Text.RegularExpressions.Regex.Match(ep.Title ?? "", @"(?:tập|tap|chapter|chap|chương|chuong|ep|episode|vol|volume)\s*(\d+)|(\d+)\s*$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                                var epLabel = epNoMatch.Success
+                                ? "Tập " + (epNoMatch.Groups[1].Success ? epNoMatch.Groups[1].Value : epNoMatch.Groups[2].Value)
+                                : ep.Title;
+
+                                <div class="episode-row @(ep.Id == Model.Id ? "active" : "")">
+                                    <a asp-controller="Story" asp-action="Read" asp-route-id="@ep.Id" class="episode-item">
+                                        <span class="episode-icon"><i class="fas fa-book-open"></i></span>
+                                        <span class="episode-main">
+                                            <strong>@epLabel</strong>
+                                            <small>@ep.Title</small>
+                                        </span>
+                                        <span class="episode-meta">
+                                            <i class="fas fa-eye"></i> @ep.Views
+                                        </span>
+                                    </a>
+
+                                    @if (isAdminUser)
+                                    {
+                                        <div class="episode-admin-actions">
+                                            <a asp-controller="Story" asp-action="Edit" asp-route-id="@ep.Id" class="episode-admin-btn edit" title="Sửa tên tập / nội dung">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <a asp-controller="Story" asp-action="Delete" asp-route-id="@ep.Id" class="episode-admin-btn delete" title="Xóa tập">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border mb-0">
+                            Chưa có danh sách tập cho truyện này.
+                        </div>
+                    }
+                </div>
+
+                <!-- Story Content -->
+                <div class="content-card" id="story-content" data-aos="fade-up">
+                    <div class="reading-toolbar">
+                        <h3 class="content-section-title"><i class="fas fa-book me-2"></i>Nội dung</h3>
+                        <div class="reading-controls">
+                            <button onclick="changeFontSize(-1)" class="font-ctrl" title="Giảm cỡ chữ">A-</button>
+                            <button onclick="changeFontSize(1)" class="font-ctrl" title="Tăng cỡ chữ">A+</button>
+                            <button onclick="toggleDarkMode()" class="font-ctrl" id="darkModeBtn" title="Chế độ tối">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="readingArea" class="reading-area">
+                        @if (isPdfStory)
+                        {
+                            <div class="alert alert-info reading-message">
+                                Truyện này được lưu dưới dạng PDF. Bấm nút bên dưới để mở trang đọc truyện.
+                            </div>
+                            <a asp-controller="Story" asp-action="Read" asp-route-id="@Model.Id" class="btn-read d-inline-block">
+                                <i class="fas fa-book-open me-2"></i>Đọc truyện
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="story-content-text" id="storyContent">
+                                @Html.Raw(Model.Content?.Replace("\n", "<br>") ?? "")
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="content-card" data-aos="fade-up">
+                    <h3 class="content-section-title">
+                        <i class="fas fa-comments me-2"></i>Bình luận
+                        <span class="comment-count-badge">@(Model.Comments?.Count ?? 0)</span>
+                    </h3>
+
+                    <!-- Add Comment Form -->
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="comment-form-wrapper">
+                            <div class="user-avatar-small">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="comment-input-area">
+                                <textarea id="commentText" class="comment-textarea"
+                                      placeholder="Chia sẻ cảm nghĩ của bạn về truyện này..." rows="3"></textarea>
+                                <div class="comment-form-actions">
+                                    <button onclick="submitComment(@Model.Id, null)" class="btn-submit-comment">
+                                        <i class="fas fa-paper-plane me-1"></i>Gửi bình luận
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="login-to-comment">
+                            <i class="fas fa-lock me-2"></i>
+                            <a asp-controller="Account" asp-action="Login">Đăng nhập</a> để bình luận
+                        </div>
+                    }
+
+                    <!-- Comments List -->
+                    <div id="commentsList">
+                        @if (Model.Comments != null && Model.Comments.Any())
+                        {
+                            foreach (var comment in Model.Comments.Where(c => c.ParentCommentId == null && c.IsApproved).OrderByDescending(c => c.CreatedAt))
+                            {
+                                <div class="comment-item" id="comment-@comment.Id">
+                                    <div class="comment-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <span class="comment-author">@(comment.User?.FullName ?? comment.User?.UserName ?? "Ẩn danh")</span>
+                                            <span class="comment-date">@comment.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                        <p class="comment-text">@comment.Content</p>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <button class="reply-btn" onclick="showReplyForm(@comment.Id)">
+                                                <i class="fas fa-reply me-1"></i>Trả lời
+                                            </button>
+                                        }
+
+                                        <!-- Reply Form -->
+                                        <div id="replyForm-@comment.Id" class="reply-form" style="display:none;">
+                                            <textarea id="replyText-@comment.Id" class="comment-textarea"
+                                              placeholder="Nhập phản hồi..." rows="2"></textarea>
+                                            <button onclick="submitComment(@Model.Id, @comment.Id)" class="btn-submit-comment btn-sm-comment">
+                                                <i class="fas fa-paper-plane me-1"></i>Gửi
+                                            </button>
+                                        </div>
+
+                                        <!-- Replies -->
+                                        @if (comment.Replies != null && comment.Replies.Any())
+                                        {
+                                            foreach (var reply in comment.Replies.Where(r => r.IsApproved).OrderBy(r => r.CreatedAt))
+                                            {
+                                                <div class="comment-reply">
+                                                    <div class="comment-avatar">
+                                                        <i class="fas fa-user-circle"></i>
+                                                    </div>
+                                                    <div class="comment-content">
+                                                        <div class="comment-header">
+                                                            <span class="comment-author">@(reply.User?.FullName ?? reply.User?.UserName ?? "Ẩn danh")</span>
+                                                            <span class="comment-date">@reply.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                                        </div>
+                                                        <p class="comment-text">@reply.Content</p>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="no-comments">
+                                <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                                <p>Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Related Stories -->
+                <div class="sidebar-card" data-aos="fade-left">
+                    <h5 class="sidebar-title"><i class="fas fa-bookmark me-2"></i>Truyện liên quan</h5>
+                    @if (relatedStories != null && relatedStories.Any())
+                    {
+                        foreach (var related in relatedStories)
+                        {
+                            <div class="related-item">
+                                <img src="@(related.CoverImageUrl ?? "/images/default-cover.jpg")"
+                                     class="related-img" alt="@related.Title"
+                                     onerror="this.src='/images/default-cover.jpg'">
+                                <div class="related-info">
+                                    <a href="@Url.Action("Details", new { id = related.Id })" class="related-title">@related.Title</a>
+                                    <div class="related-stats">
+                                        <span><i class="fas fa-eye"></i> @related.Views</span>
+                                        <span><i class="fas fa-heart"></i> @related.Likes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">Không có truyện liên quan</p>
+                    }
+                </div>
+
+                <!-- Quick Links -->
+                <div class="sidebar-card" data-aos="fade-left" data-aos-delay="100">
+                    <h5 class="sidebar-title"><i class="fas fa-compass me-2"></i>Khám phá thêm</h5>
+                    <div class="quick-links">
+                        <a href="@Url.Action("Index", "Story", new { sortBy = "newest" })" class="quick-link">
+                            <i class="fas fa-clock"></i> Truyện mới nhất
+                        </a>
+                        <a href="@Url.Action("Index", "Story", new { sortBy = "popular" })" class="quick-link">
+                            <i class="fas fa-fire"></i> Truyện hot
+                        </a>
+                        <a href="@Url.Action("Index", "Story", new { sortBy = "likes" })" class="quick-link">
+                            <i class="fas fa-heart"></i> Yêu thích nhất
+                        </a>
+                        <a href="@Url.Action("Index", "Genre")" class="quick-link">
+                            <i class="fas fa-tags"></i> Tất cả thể loại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast-notif" style="display:none;"></div>
+
+<style>
+    .breadcrumb-bar {
+        background: white;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-light);
+    }
+
+    .breadcrumb {
+        font-size: 0.85rem;
+    }
+
+    .breadcrumb-item a {
+        color: var(--secondary);
+        text-decoration: none;
+    }
+
+    .story-header-card, .content-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .cover-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .story-cover {
+        width: 100%;
+        aspect-ratio: 3/4;
+        object-fit: cover;
+    }
+
+    .genre-tag {
+        display: inline-block;
+        background: rgba(230,126,34,0.12);
+        color: var(--secondary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .story-detail-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1.3;
+        margin-bottom: 0.75rem;
+    }
+
+    .story-meta-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        font-size: 0.82rem;
+        color: var(--gray);
+    }
+
+        .meta-item i {
+            margin-right: 4px;
+            color: var(--secondary);
+        }
+
+    .status-published {
+        color: var(--success) !important;
+    }
+
+    .status-draft {
+        color: var(--warning) !important;
+    }
+
+    .status-locked {
+        color: var(--danger) !important;
+    }
+
+    .story-stats-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--gray-light);
+        border-radius: 10px;
+        padding: 0.5rem 0.75rem;
+        min-width: 70px;
+    }
+
+        .stat-box i {
+            color: var(--secondary);
+            margin-bottom: 2px;
+        }
+
+        .stat-box span {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .stat-box small {
+            font-size: 0.7rem;
+            color: var(--gray);
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-read {
+        background: var(--secondary);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+
+        .btn-read:hover {
+            background: var(--secondary-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-favorite {
+        background: white;
+        color: var(--danger);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        border: 2px solid var(--danger);
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .btn-favorite:hover, .btn-favorite.active {
+            background: var(--danger);
+            color: white;
+        }
+
+    .btn-like {
+        background: white;
+        color: var(--primary);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        border: 2px solid var(--primary);
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .btn-like:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+    .btn-admin-edit {
+        background: white;
+        color: var(--warning);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        border: 2px solid var(--warning);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+        .btn-admin-edit:hover {
+            background: var(--warning);
+            color: white;
+        }
+
+    .content-section-title {
+        font-weight: 700;
+        color: var(--primary);
+        border-bottom: 2px solid var(--gray-light);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .reading-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--gray-light);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .reading-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .font-ctrl {
+        background: var(--gray-light);
+        border: none;
+        border-radius: 8px;
+        width: 35px;
+        height: 35px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+        .font-ctrl:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+
+
+    .reading-area {
+        font-size: 1.05rem;
+        transition: all 0.25s ease;
+    }
+
+    #story-content.reading-dark {
+        background: #111827 !important;
+        color: #e5e7eb;
+    }
+
+        #story-content.reading-dark .reading-toolbar {
+            border-bottom-color: rgba(255, 255, 255, 0.14);
+        }
+
+        #story-content.reading-dark .content-section-title,
+        #story-content.reading-dark .story-content-text {
+            color: #e5e7eb;
+        }
+
+        #story-content.reading-dark .reading-message {
+            background: #1f2937;
+            border-color: #374151;
+            color: #e5e7eb;
+        }
+
+        #story-content.reading-dark .font-ctrl {
+            background: #374151;
+            color: #f9fafb;
+        }
+
+            #story-content.reading-dark .font-ctrl:hover {
+                background: var(--secondary);
+                color: #fff;
+            }
+
+    .story-content-text {
+        font-size: inherit;
+        line-height: 1.9;
+        color: #333;
+        font-family: Georgia, serif;
+        padding: 0.5rem 0;
+        transition: all 0.3s;
+    }
+
+        .story-content-text.dark-mode {
+            background: #1a1a2e;
+            color: #e0e0e0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: -0.5rem;
+        }
+
+    .story-desc-text {
+        font-size: 0.95rem;
+        line-height: 1.8;
+        color: #444;
+    }
+
+    /* Comments */
+    .comment-count-badge {
+        background: var(--secondary);
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        margin-left: 0.5rem;
+    }
+
+    .comment-form-wrapper {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .user-avatar-small {
+        font-size: 2rem;
+        color: var(--gray);
+        flex-shrink: 0;
+    }
+
+    .comment-input-area {
+        flex: 1;
+    }
+
+    .comment-textarea {
+        width: 100%;
+        border: 2px solid var(--gray-light);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        resize: none;
+        transition: border-color 0.3s;
+    }
+
+        .comment-textarea:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+    .comment-form-actions {
+        margin-top: 0.5rem;
+        text-align: right;
+    }
+
+    .btn-submit-comment {
+        background: var(--secondary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+        .btn-submit-comment:hover {
+            background: var(--secondary-dark);
+            transform: translateY(-1px);
+        }
+
+    .btn-sm-comment {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .login-to-comment {
+        background: var(--gray-light);
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+    }
+
+        .login-to-comment a {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+    .comment-item {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .comment-avatar {
+        font-size: 2rem;
+        color: var(--gray);
+        flex-shrink: 0;
+    }
+
+    .comment-content {
+        flex: 1;
+    }
+
+    .comment-header {
+        display: flex;
+        gap: 0.75rem;
+        align-items: baseline;
+        margin-bottom: 0.25rem;
+    }
+
+    .comment-author {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--primary);
+    }
+
+    .comment-date {
+        font-size: 0.78rem;
+        color: var(--gray);
+    }
+
+    .comment-text {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #444;
+        margin-bottom: 0.25rem;
+    }
+
+    .reply-btn {
+        background: none;
+        border: none;
+        color: var(--secondary);
+        font-size: 0.82rem;
+        cursor: pointer;
+        padding: 0;
+        font-weight: 600;
+    }
+
+        .reply-btn:hover {
+            text-decoration: underline;
+        }
+
+    .comment-reply {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        margin-left: 1rem;
+        padding-left: 1rem;
+        border-left: 3px solid var(--gray-light);
+    }
+
+    .reply-form {
+        margin-top: 0.5rem;
+    }
+
+    .no-comments {
+        text-align: center;
+        color: var(--gray);
+        padding: 2rem;
+    }
+
+    /* Sidebar */
+    .sidebar-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 90px;
+    }
+
+    .sidebar-title {
+        font-weight: 700;
+        color: var(--primary);
+        border-bottom: 2px solid var(--gray-light);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .related-item {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-light);
+    }
+
+        .related-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+    .related-img {
+        width: 55px;
+        height: 75px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .related-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .related-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--dark);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.3rem;
+        line-height: 1.3;
+    }
+
+        .related-title:hover {
+            color: var(--secondary);
+        }
+
+    .related-stats {
+        font-size: 0.75rem;
+        color: var(--gray);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+        .related-stats i {
+            color: var(--secondary);
+        }
+
+    .quick-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .quick-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--dark);
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+        .quick-link i {
+            color: var(--secondary);
+            width: 18px;
+        }
+
+        .quick-link:hover {
+            background: rgba(230,126,34,0.1);
+            color: var(--secondary);
+            padding-left: 1rem;
+        }
+
+    .toast-notif {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: white;
+        padding: 0.875rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: var(--shadow-xl);
+        z-index: 9999;
+        font-weight: 600;
+        border-left: 4px solid var(--success);
+        animation: slideIn 0.3s ease;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .episode-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .episode-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 14px;
+        border-radius: 14px;
+        background: #fff;
+        border: 1px solid #edf0f3;
+        color: #2c3e50;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0,0,0,.05);
+        transition: .2s ease;
+    }
+
+        .episode-item:hover {
+            transform: translateY(-2px);
+            border-color: #f58220;
+            color: #f58220;
+            box-shadow: 0 8px 22px rgba(245,130,32,.16);
+        }
+
+        .episode-item.active {
+            background: linear-gradient(135deg, #f58220, #ff9d3d);
+            color: #fff;
+            border-color: transparent;
+        }
+
+    .episode-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(245,130,32,.12);
+        color: #f58220;
+        flex-shrink: 0;
+    }
+
+    .episode-item.active .episode-icon {
+        background: rgba(255,255,255,.2);
+        color: #fff;
+    }
+
+    .episode-main {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+
+        .episode-main small {
+            color: #8a97a3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+    .episode-item.active .episode-main small {
+        color: rgba(255,255,255,.82);
+    }
+
+    .episode-meta {
+        font-size: .85rem;
+        opacity: .8;
+        white-space: nowrap;
+    }
+
+
+
+    .episode-row {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 0;
+        clear: both;
+    }
+
+        .episode-row .episode-item {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin-bottom: 0 !important;
+        }
+
+        .episode-row.active .episode-item {
+            box-shadow: 0 10px 25px rgba(230, 126, 34, 0.18);
+        }
+
+    .episode-admin-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex: 0 0 auto;
+    }
+
+    .episode-admin-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background: #f8f9fa;
+        color: #2D3E50;
+        border: 1px solid #e9ecef;
+        transition: all .2s ease;
+    }
+
+        .episode-admin-btn.edit:hover {
+            background: #2D3E50;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .episode-admin-btn.delete:hover {
+            background: #dc3545;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+    {
+        flex-direction: column;
+    }
+
+    .episode-admin-actions {
+        justify-content: flex-end;
+    }
+
+    }
+
+
+
+    .episode-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid #e9eef3;
+        padding-bottom: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .btn-add-episode {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #f58220, #ff9f43);
+        color: #fff !important;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 8px 20px rgba(245, 130, 32, 0.25);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+        .btn-add-episode:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(245, 130, 32, 0.35);
+        }
+
+    /* Fix giao diện danh sách tập bị chồng lên nhau */
+    .episode-item,
+    .episode-row,
+    .episode-admin-actions {
+        box-sizing: border-box;
+    }
+
+    .episode-main strong,
+    .episode-main small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+
+    {
+        max-width: 100%;
+    }
+
+    }
+
+  
+
+    {
+        flex-direction: column;
+    }
+
+    .episode-admin-actions {
+        justify-content: flex-start;
+    }
+
+    .episode-header {
+        align-items: flex-start;
+    }
+
+    }
+</style>
+
+@section Scripts {
+    <script>
+        let fontSize = Number(localStorage.getItem('storyFontSize')) || 1.05;
+        let darkMode = localStorage.getItem('storyDarkMode') === 'true';
+
+        function applyReadingSettings() {
+            const readingArea = document.getElementById('readingArea');
+            const contentCard = document.getElementById('story-content');
+            const btn = document.getElementById('darkModeBtn');
+
+            if (readingArea) {
+                readingArea.style.fontSize = fontSize + 'rem';
+            }
+
+            if (contentCard) {
+                contentCard.classList.toggle('reading-dark', darkMode);
+            }
+
+            if (btn) {
+                btn.innerHTML = darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                btn.title = darkMode ? 'Chế độ sáng' : 'Chế độ tối';
+            }
+        }
+
+        function changeFontSize(delta) {
+            fontSize = Math.min(1.6, Math.max(0.8, fontSize + delta * 0.08));
+            localStorage.setItem('storyFontSize', fontSize.toString());
+            applyReadingSettings();
+        }
+
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            localStorage.setItem('storyDarkMode', darkMode.toString());
+            applyReadingSettings();
+        }
+
+        document.addEventListener('DOMContentLoaded', applyReadingSettings);
+
+        function showToast(msg, success = true) {
+            const t = document.getElementById('toast');
+            t.innerHTML = `<i class="fas ${success ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-danger'} me-2"></i>${msg}`;
+            t.style.borderLeftColor = success ? 'var(--success)' : 'var(--danger)';
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
+        }
+
+        function toggleFavorite(storyId) {
+            fetch('/Story/ToggleFavoriteAjax', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                body: JSON.stringify({ storyId })
+            }).then(r => r.json()).then(data => {
+                const btn = document.getElementById('favoriteBtn');
+                const txt = document.getElementById('favText');
+                if (data.isFavorite) {
+                    btn.classList.add('active');
+                    txt.textContent = 'Đã lưu';
+                    showToast('Đã thêm vào yêu thích!');
+                } else {
+                    btn.classList.remove('active');
+                    txt.textContent = 'Lưu truyện';
+                    showToast('Đã xóa khỏi yêu thích!');
+                }
+            }).catch(() => showToast('Có lỗi xảy ra!', false));
+        }
+
+        function toggleLike(storyId) {
+            fetch('/Story/LikeAjax', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                body: JSON.stringify({ storyId })
+            }).then(r => r.json()).then(data => {
+                document.getElementById('likeCount').textContent = data.likes;
+                showToast('Đã thích truyện!');
+            }).catch(() => showToast('Có lỗi xảy ra!', false));
+        }
+
+        function showReplyForm(commentId) {
+            const form = document.getElementById('replyForm-' + commentId);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function submitComment(storyId, parentId) {
+            const textareaId = parentId ? 'replyText-' + parentId : 'commentText';
+            const content = document.getElementById(textareaId).value.trim();
+            if (!content) { showToast('Vui lòng nhập nội dung bình luận!', false); return; }
+
+            fetch('/Story/AddComment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
+                body: JSON.stringify({ storyId, content, parentCommentId: parentId })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    document.getElementById(textareaId).value = '';
+                    if (parentId) document.getElementById('replyForm-' + parentId).style.display = 'none';
+                    showToast('Bình luận đã được đăng!');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Có lỗi xảy ra!', false);
+                }
+            }).catch(() => showToast('Có lỗi xảy ra!', false));
+        }
+
+        function getToken() {
+            const el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}

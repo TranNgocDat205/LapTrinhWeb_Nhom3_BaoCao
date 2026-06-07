@@ -1,0 +1,231 @@
+﻿@model DACS_Nhom3.Models.Story
+@{
+    ViewData["Title"] = "Xóa truyện";
+}
+
+<div class="delete-story-page">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="delete-card">
+                    <div class="delete-header">
+                        <div class="warning-icon">
+                            <i class="fas fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h2>Xác nhận xóa truyện</h2>
+                            <p>Hành động này sẽ xóa truyện, ảnh bìa, file PDF và dữ liệu liên quan.</p>
+                        </div>
+                    </div>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger rounded-3 mt-3">
+                            <i class="fas fa-circle-exclamation me-2"></i>@TempData["Error"]
+                        </div>
+                    }
+
+                    <div class="story-preview">
+                        <img src="@(Model.CoverImageUrl ?? "/images/default-cover.jpg")"
+                             alt="@Model.Title"
+                             onerror="this.src='/images/default-cover.jpg'" />
+
+                        <div class="story-info">
+                            <span class="genre-badge">@(Model.Genre?.Name ?? "Chưa phân loại")</span>
+                            <h3>@Model.Title</h3>
+                            <p class="author"><i class="fas fa-user-pen me-1"></i>@(string.IsNullOrWhiteSpace(Model.Author) ? "Không rõ tác giả" : Model.Author)</p>
+                            <p class="desc">@Model.Description</p>
+
+                            <div class="stats">
+                                <span><i class="fas fa-eye"></i> @Model.Views lượt xem</span>
+                                <span><i class="fas fa-heart"></i> @Model.Likes lượt thích</span>
+                                <span><i class="fas fa-comments"></i> @(Model.Comments?.Count ?? 0) bình luận</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="danger-note">
+                        <strong>Lưu ý:</strong> Sau khi xóa, bạn không thể khôi phục truyện này từ giao diện website.
+                    </div>
+
+                    <form asp-action="Delete" method="post" class="action-row">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <a asp-action="Index" class="btn-cancel">
+                            <i class="fas fa-arrow-left me-1"></i> Hủy
+                        </a>
+
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-edit">
+                            <i class="fas fa-pen me-1"></i> Sửa thay vì xóa
+                        </a>
+
+                        <button type="submit" class="btn-delete" onclick="return confirm('Bạn chắc chắn muốn xóa truyện này?');">
+                            <i class="fas fa-trash me-1"></i> Xóa truyện
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .delete-story-page {
+        background: #f6f8fb;
+        min-height: calc(100vh - 80px);
+    }
+
+    .delete-card {
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 18px 45px rgba(17,24,39,.08);
+        padding: 1.5rem;
+        border: 1px solid rgba(220,53,69,.12);
+    }
+
+    .delete-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #edf0f3;
+    }
+
+    .warning-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(220,53,69,.1);
+        color: #dc3545;
+        font-size: 1.8rem;
+        flex: 0 0 auto;
+    }
+
+    .delete-header h2 {
+        margin: 0;
+        font-weight: 800;
+        color: #2D3E50;
+    }
+
+    .delete-header p {
+        margin: .25rem 0 0;
+        color: #7f8c8d;
+    }
+
+    .story-preview {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 1.4rem;
+        padding: 1.5rem 0;
+    }
+
+        .story-preview img {
+            width: 180px;
+            height: 250px;
+            border-radius: 18px;
+            object-fit: cover;
+            box-shadow: 0 12px 28px rgba(17,24,39,.14);
+        }
+
+    .genre-badge {
+        display: inline-flex;
+        background: rgba(230,126,34,.12);
+        color: #E67E22;
+        border-radius: 999px;
+        padding: .35rem .8rem;
+        font-weight: 700;
+        font-size: .85rem;
+        margin-bottom: .75rem;
+    }
+
+    .story-info h3 {
+        font-weight: 800;
+        color: #2D3E50;
+        margin-bottom: .4rem;
+    }
+
+    .author {
+        color: #7f8c8d;
+        margin-bottom: .7rem;
+    }
+
+    .desc {
+        color: #5f6f73;
+        line-height: 1.65;
+    }
+
+    .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .65rem;
+        margin-top: 1rem;
+    }
+
+        .stats span {
+            background: #f6f8fb;
+            border-radius: 999px;
+            padding: .45rem .75rem;
+            color: #5f6f73;
+            font-size: .9rem;
+        }
+
+    .danger-note {
+        background: rgba(220,53,69,.08);
+        border: 1px solid rgba(220,53,69,.15);
+        color: #9f2533;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        margin-bottom: 1.2rem;
+    }
+
+    .action-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-cancel,
+    .btn-edit,
+    .btn-delete {
+        border: none;
+        text-decoration: none;
+        border-radius: 999px;
+        padding: .75rem 1.1rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-cancel {
+        color: #5f6f73;
+        background: #edf0f3;
+    }
+
+    .btn-edit {
+        color: #0d6efd;
+        background: rgba(13,110,253,.1);
+    }
+
+    .btn-delete {
+        color: #fff;
+        background: linear-gradient(135deg,#dc3545,#b02a37);
+        box-shadow: 0 10px 20px rgba(220,53,69,.25);
+    }
+
+    @@media (max-width: 768px) {
+        .story-preview {
+            grid-template-columns: 1fr;
+        }
+
+            .story-preview img {
+                width: 150px;
+                height: 210px;
+            }
+    }
+</style>

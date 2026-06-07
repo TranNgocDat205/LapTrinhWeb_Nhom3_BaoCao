@@ -1,0 +1,152 @@
+﻿@model IEnumerable<DACS_Nhom3.Models.ReadingHistory>
+@{
+    ViewData["Title"] = "Lịch sử đọc";
+}
+
+<div class="container py-5">
+    <div class="page-header mb-4">
+        <h2 class="page-title"><i class="fas fa-history me-2"></i>Lịch Sử Đọc</h2>
+        <p class="text-muted">20 truyện bạn đã đọc gần đây</p>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="history-list">
+            @foreach (var history in Model)
+            {
+                <div class="history-item" data-aos="fade-up">
+                    <img src="@(history.Story?.CoverImageUrl ?? "/images/default-cover.jpg")"
+                         class="history-img" alt="@history.Story?.Title"
+                         onerror="this.src='/images/default-cover.jpg'">
+                    <div class="history-info">
+                        <a href="@Url.Action("Details", "Story", new { id = history.StoryId })" class="history-title">
+                            @history.Story?.Title
+                        </a>
+                        <div class="history-meta">
+                            <span><i class="fas fa-user-pen me-1"></i>@(history.Story?.Author ?? "Không rõ")</span>
+                            <span><i class="fas fa-tag me-1"></i>@(history.Story?.Genre?.Name ?? "Chưa phân loại")</span>
+                        </div>
+                        <div class="history-date">
+                            <i class="fas fa-clock me-1"></i>Đã đọc: @history.ReadAt.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        <a href="@Url.Action("Details", "Story", new { id = history.StoryId })" class="btn-continue">
+                            <i class="fas fa-book-open me-1"></i>Đọc tiếp
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-book-reader fa-4x mb-4 text-muted"></i>
+            <h4>Chưa có lịch sử đọc</h4>
+            <p class="text-muted">Hãy bắt đầu đọc truyện để lưu lịch sử!</p>
+            <a asp-controller="Story" asp-action="Index" class="btn-primary-custom mt-3">
+                <i class="fas fa-book-open me-2"></i>Tìm truyện hay
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: var(--primary);
+    }
+
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .history-item {
+        background: white;
+        border-radius: 14px;
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s;
+    }
+
+        .history-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+    .history-img {
+        width: 60px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .history-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .history-title {
+        font-weight: 700;
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 1rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+        .history-title:hover {
+            color: var(--secondary);
+        }
+
+    .history-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.82rem;
+        color: var(--gray);
+        margin-bottom: 0.25rem;
+    }
+
+        .history-meta i {
+            color: var(--secondary);
+        }
+
+    .history-date {
+        font-size: 0.78rem;
+        color: var(--gray);
+    }
+
+        .history-date i {
+            color: var(--secondary);
+        }
+
+    .btn-continue {
+        background: var(--secondary);
+        color: white;
+        padding: 0.45rem 1rem;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+        .btn-continue:hover {
+            background: var(--secondary-dark);
+            color: white;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+    }
+</style>

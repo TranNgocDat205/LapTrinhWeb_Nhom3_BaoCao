@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net8.0": {
       "Azure.Core/1.35.0": {
@@ -4312,23 +4312,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\trang\\.nuget\\packages\\": {},
+    "C:\\Users\\PC\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\trang\\OneDrive\\Tài liệu\\Nhóm3_Lập Trình Web\\DACS_Nhóm3.csproj",
+      "projectUniqueName": "C:\\Users\\PC\\OneDrive\\Tài liệu\\Nhóm3_Lập Trình Web\\DACS_Nhóm3.csproj",
       "projectName": "DACS_Nhóm3",
-      "projectPath": "C:\\Users\\trang\\OneDrive\\Tài liệu\\Nhóm3_Lập Trình Web\\DACS_Nhóm3.csproj",
-      "packagesPath": "C:\\Users\\trang\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\trang\\OneDrive\\Tài liệu\\Nhóm3_Lập Trình Web\\obj\\",
+      "projectPath": "C:\\Users\\PC\\OneDrive\\Tài liệu\\Nhóm3_Lập Trình Web\\DACS_Nhóm3.csproj",
+      "packagesPath": "C:\\Users\\PC\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\PC\\OneDrive\\Tài liệu\\Nhóm3_Lập Trình Web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4356,7 +4356,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -4407,7 +4407,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.204/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

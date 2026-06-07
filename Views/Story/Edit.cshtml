@@ -1,0 +1,140 @@
+﻿@model DACS_Nhom3.Models.Story
+@{
+    ViewData["Title"] = "Chỉnh sửa tập truyện";
+    var genres = ViewBag.Genres as List<DACS_Nhom3.Models.Genre>;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <h3 class="mb-0 fw-bold">
+                        <i class="fas fa-edit me-2"></i> Chỉnh sửa tập truyện
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label asp-for="Title" class="form-label fw-bold">Tên tập / tên truyện <span class="text-danger">*</span></label>
+                                <input asp-for="Title" class="form-control" placeholder="VD: Doraemon Tập 1, Doraemon Tập 2..." />
+                                <span asp-validation-for="Title" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Author" class="form-label fw-bold">Tác giả</label>
+                                <input asp-for="Author" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="GenreId" class="form-label fw-bold">Thể loại <span class="text-danger">*</span></label>
+                                <select asp-for="GenreId" class="form-select">
+                                    <option value="">-- Chọn thể loại --</option>
+                                    @if (genres != null)
+                                    {
+                                        foreach (var genre in genres)
+                                        {
+                                            <option value="@genre.Id">@genre.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Ảnh bìa mới</label>
+                                <input type="file" name="coverImage" class="form-control" accept="image/*" />
+                                @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                                {
+                                    <div class="mt-2">
+                                        <img src="@Model.CoverImageUrl" alt="Current cover" style="max-width: 150px; border-radius: 8px;" />
+                                        <small class="text-muted d-block">Ảnh bìa hiện tại</small>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label fw-bold">Mô tả <span class="text-danger">*</span></label>
+                                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Content" class="form-label fw-bold">Nội dung tập <span class="text-danger">*</span></label>
+
+                                @if (!string.IsNullOrEmpty(Model.Content) && Model.Content.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="alert alert-warning rounded-3">
+                                        <i class="fas fa-file-pdf me-1"></i>
+                                        Tập này đang dùng file PDF: <strong>@Model.Content</strong>
+                                        <br />
+                                        <small>Nếu muốn sửa nội dung PDF, hãy upload file PDF mới bên dưới.</small>
+                                    </div>
+                                    <input type="hidden" asp-for="Content" />
+                                }
+                                else
+                                {
+                                    <textarea asp-for="Content" class="form-control" rows="12" placeholder="Nhập nội dung của tập truyện..."></textarea>
+                                }
+                                <span asp-validation-for="Content" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Thay file PDF cho tập này</label>
+                                <input type="file" name="pdfFile" class="form-control" accept="application/pdf,.pdf" />
+                                @if (!string.IsNullOrEmpty(Model.Content) && Model.Content.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <a href="@Url.Content(Model.Content)" target="_blank" class="btn btn-sm btn-outline-danger mt-2">
+                                        <i class="fas fa-file-pdf me-1"></i> Mở PDF hiện tại
+                                    </a>
+                                }
+                                <small class="text-muted d-block mt-1">Chọn file mới nếu muốn thay PDF hiện tại. Nếu truyện dạng chữ thì có thể bỏ trống mục này.</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Status" class="form-label fw-bold">Trạng thái</label>
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Published">Đã đăng</option>
+                                    <option value="Draft">Nháp</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <hr />
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <a asp-action="Index" class="btn btn-outline-secondary">Hủy bỏ</a>
+                                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                                        <i class="fas fa-trash me-1"></i> Xóa tập
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> Lưu tập
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #2D3E50 0%, #1a2a3a 100%);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #E67E22, #d35400);
+        border: none;
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
