@@ -1,4 +1,4 @@
-﻿@model IEnumerable<DACS_Nhom3.Models.Story>
+@model IEnumerable<DACS_Nhom3.Models.Story>
 @{
     ViewData["Title"] = "Thư viện truyện";
     var genres = ViewBag.Genres as List<DACS_Nhom3.Models.Genre>;
@@ -226,13 +226,20 @@
 </div>
 
 <style>
+    :root {
+        --primary: #2c3e50;
+        --primary-dark: #1a252f;
+        --secondary: #e67e22;
+        --secondary-dark: #d35400;
+    }
+
     .library-page {
         background: #f6f8fb;
         min-height: calc(100vh - 80px);
     }
 
     .library-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
         padding: 2.8rem 0;
         margin-bottom: 0;
     }
