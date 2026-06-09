@@ -257,6 +257,33 @@ select,
         box-shadow: 0 14px 40px rgba(17,24,39,.12);
         backdrop-filter: blur(18px);
     }
+/* ===== FIX DROPDOWN ADMIN ===== */
+
+.navbar,
+.navbar.fixed-top {
+    z-index: 999999 !important;
+    position: fixed !important;
+}
+
+    .navbar .dropdown {
+        position: relative !important;
+    }
+
+    .navbar .dropdown-menu {
+        z-index: 1000000 !important;
+        position: absolute !important;
+    }
+
+main,
+.footer,
+.hero,
+.card,
+.admin-container,
+.genre-container,
+.table-responsive {
+    position: relative;
+    z-index: 1 !important;
+}
 
 .anime-3d-card {
     animation: floatModel 4.5s ease-in-out infinite;
