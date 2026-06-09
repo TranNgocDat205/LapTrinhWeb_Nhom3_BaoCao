@@ -198,9 +198,13 @@ namespace DACS_Nhom3.Controllers
                 : null;
 
             const int downloadPrice = 5;
+            const int giftBoxPrice = 1;
             ViewBag.UserDiamonds = currentUser?.Diamonds ?? 0;
+            ViewBag.UserGiftBoxes = currentUser?.FreeDownloads ?? 0;
             ViewBag.DownloadPrice = downloadPrice;
-            ViewBag.CanDownloadPdf = (currentUser?.Diamonds ?? 0) >= downloadPrice;
+            ViewBag.GiftBoxPrice = giftBoxPrice;
+            ViewBag.CanDownloadPdf = (currentUser?.Diamonds ?? 0) >= downloadPrice
+                || (currentUser?.FreeDownloads ?? 0) >= giftBoxPrice;
 
             if (!string.IsNullOrWhiteSpace(story.Content) && story.Content.Trim().EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
             {
@@ -242,7 +246,8 @@ namespace DACS_Nhom3.Controllers
         }
 
 
-        // GET: Tải PDF - yêu cầu đủ 5 kim cương và trừ 5 kim cương khi bắt đầu tải
+        // GET: Tải PDF - yêu cầu đủ 5 kim cương hoặc 1 hộp quà.
+        // Ưu tiên dùng hộp quà trước, nếu không có hộp quà thì trừ 5 kim cương.
         [Authorize]
         public async Task<IActionResult> DownloadPdf(int id)
         {
@@ -298,14 +303,25 @@ namespace DACS_Nhom3.Controllers
                 return Challenge();
             }
 
-            if (user.Diamonds < 5)
+            const int downloadPrice = 5;
+            const int giftBoxPrice = 1;
+
+            if (user.FreeDownloads >= giftBoxPrice)
             {
-                TempData["Error"] = $"Không đủ kim cương để tải truyện. Bạn đang có {user.Diamonds} kim cương, cần 5 kim cương.";
+                // Có hộp quà: cho tải và trừ 1 hộp quà của tài khoản.
+                user.FreeDownloads -= giftBoxPrice;
+            }
+            else if (user.Diamonds >= downloadPrice)
+            {
+                // Không có hộp quà nhưng đủ kim cương: cho tải và trừ 5 kim cương.
+                user.Diamonds -= downloadPrice;
+            }
+            else
+            {
+                TempData["Error"] = $"Không đủ để tải truyện. Bạn đang có {user.Diamonds} kim cương và {user.FreeDownloads} hộp quà. Cần 5 kim cương hoặc 1 hộp quà.";
                 return RedirectToAction(nameof(Read), new { id });
             }
 
-            // Đủ điều kiện tải: trừ đúng 5 kim cương vào tài khoản người dùng trước khi trả file.
-            user.Diamonds -= 5;
             await _context.SaveChangesAsync();
 
             var safeTitle = Regex.Replace(story.Title ?? "truyen", @"[^a-zA-Z0-9\-_\sÀ-ỹ]", "").Trim();
