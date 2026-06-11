@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DACS_Nhóm3")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+58dba126baaf4425889d3e801adb926aa8ad6a22")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+501284a6d70763ef20e7e3787bdca210793f8fba")]
 [assembly: System.Reflection.AssemblyProductAttribute("DACS_Nhóm3")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DACS_Nhóm3")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -94,34 +94,71 @@ namespace DACS_Nhom3.Controllers
             return View(genres);
         }
 
-        // POST: Admin - Thêm thể loại qua AJAX
+        // GET: Admin - Trang thêm thể loại
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new Genre
+            {
+                Icon = "fas fa-book",
+                Color = "#E67E22",
+                IsActive = true
+            });
+        }
+
+        // POST: Admin - Thêm thể loại
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Genre genre)
         {
+            bool isAjaxRequest = string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+
             genre.Name = genre.Name?.Trim() ?? string.Empty;
             genre.Description = string.IsNullOrWhiteSpace(genre.Description) ? null : genre.Description.Trim();
             genre.Icon = string.IsNullOrWhiteSpace(genre.Icon) ? "fas fa-book" : genre.Icon.Trim();
             genre.Color = string.IsNullOrWhiteSpace(genre.Color) ? "#E67E22" : genre.Color.Trim();
 
+            ModelState.Remove(nameof(Genre.Icon));
+            ModelState.Remove(nameof(Genre.Color));
+            ModelState.Remove(nameof(Genre.Description));
+            TryValidateModel(genre);
+
             if (!ModelState.IsValid)
             {
                 var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ: " + errors });
+                if (isAjaxRequest)
+                {
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ: " + errors });
+                }
+
+                TempData["Error"] = "Dữ liệu không hợp lệ: " + errors;
+                return View(genre);
             }
 
-            // Kiểm tra trùng tên thể loại công khai
             if (await _context.Genres.AnyAsync(g => g.Name.ToLower() == genre.Name.ToLower()))
             {
-                return Json(new { success = false, message = "Tên thể loại này đã tồn tại trong hệ thống!" });
+                const string duplicateMessage = "Tên thể loại này đã tồn tại trong hệ thống!";
+                if (isAjaxRequest)
+                {
+                    return Json(new { success = false, message = duplicateMessage });
+                }
+
+                ModelState.AddModelError(nameof(Genre.Name), duplicateMessage);
+                return View(genre);
             }
 
             _context.Genres.Add(genre);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Thêm thể loại mới thành công!";
-            return Json(new { success = true, message = "Thêm thành công!" });
+            if (isAjaxRequest)
+            {
+                return Json(new { success = true, message = "Thêm thành công!" });
+            }
+
+            return RedirectToAction(nameof(Manage));
         }
 
         // POST: Admin - Sửa thể loại qua AJAX
