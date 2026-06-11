@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj": {}
+    "C:\\Users\\datro\\Documents\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj": {}
   },
   "projects": {
-    "D:\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj": {
+    "C:\\Users\\datro\\Documents\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj",
+        "projectUniqueName": "C:\\Users\\datro\\Documents\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj",
         "projectName": "DACS_Nhóm3",
-        "projectPath": "D:\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj",
+        "projectPath": "C:\\Users\\datro\\Documents\\LapTrinhWeb_Nhom3_BaoCao\\DACS_Nhóm3.csproj",
         "packagesPath": "C:\\Users\\datro\\.nuget\\packages\\",
-        "outputPath": "D:\\LapTrinhWeb_Nhom3_BaoCao\\obj\\",
+        "outputPath": "C:\\Users\\datro\\Documents\\LapTrinhWeb_Nhom3_BaoCao\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
