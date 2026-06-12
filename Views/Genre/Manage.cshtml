@@ -100,6 +100,7 @@
                                                         data-icon="@genre.Icon"
                                                         data-color="@genre.Color"
                                                         data-sortorder="@genre.SortOrder"
+                                                        data-isactive="@genre.IsActive.ToString().ToLower()"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#editGenreModal">
                                                     <i class="fas fa-edit"></i>
@@ -299,168 +300,215 @@
         }
 </style>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    $(document).ready(function() {
-        // Xử lý submit form Create bằng AJAX
-        $('#createGenreForm').on('submit', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+    document.addEventListener('DOMContentLoaded', function () {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const requestToken = tokenInput ? tokenInput.value : '';
 
-            console.log("Form submitted!");
+        function closeModal(modalId) {
+            const modalElement = document.getElementById(modalId);
+            if (!modalElement || !window.bootstrap) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.hide();
+        }
 
-            var formData = $(this).serialize();
-            console.log("Form data: " + formData);
-
-            $.ajax({
-                url: '@Url.Action("Create", "Genre")',
-                type: 'POST',
-                data: formData,
-                beforeSend: function() {
-                    $('#submitGenreBtn').html('<i class="fas fa-spinner fa-spin me-2"></i> Đang xử lý...').prop('disabled', true);
-                },
-                success: function(response) {
-                    console.log("Success response:", response);
-                    $('#submitGenreBtn').html('<i class="fas fa-save me-2"></i> Thêm thể loại').prop('disabled', false);
-
-                    if (response && response.success) {
-                        $('#createGenreModal').modal('hide');
-                        location.reload();
-                    } else {
-                        alert((response && response.message) ? response.message : 'Không thể thêm thể loại!');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error:", xhr);
-                    $('#submitGenreBtn').html('<i class="fas fa-save me-2"></i> Thêm thể loại').prop('disabled', false);
-
-                    if (xhr.status === 400) {
-                        alert('Có lỗi validation: ' + xhr.responseText);
-                    } else {
-                        alert('Có lỗi xảy ra: ' + error);
-                    }
-                }
-            });
-        });
-
-        // Xử lý submit form Edit bằng AJAX
-        $('#editGenreForm').on('submit', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            var formData = $(this).serialize();
-
-            $.ajax({
-                url: '@Url.Action("Edit", "Genre")',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    if (response && response.success) {
-                        $('#editGenreModal').modal('hide');
-                        location.reload();
-                    } else {
-                        alert((response && response.message) ? response.message : 'Không thể cập nhật thể loại!');
-                    }
-                },
-                error: function(xhr) {
-                    alert('Có lỗi xảy ra khi cập nhật!');
-                }
-            });
-        });
-
-        // Delete genre
-        $('.delete-genre').click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var id = $(this).data('id');
-            var row = $('#row-' + id);
-            var genreName = row.find('td:eq(2)').text().trim();
-
-            if (confirm(`Bạn có chắc chắn muốn xóa thể loại "${genreName}"?`)) {
-                $.ajax({
-                    url: '/Genre/Delete',
-                    type: 'POST',
-                    data: { id: id },
-                    headers: {
-                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val()
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            row.fadeOut(300, function() { $(this).remove(); });
-                            alert(response.message);
-                        } else {
-                            alert(response.message);
-                        }
-                    },
-                    error: function() {
-                        alert('Có lỗi xảy ra!');
-                    }
-                });
+        function resetCreateButton() {
+            const button = document.getElementById('submitGenreBtn');
+            if (button) {
+                button.innerHTML = '<i class="fas fa-save me-2"></i> Thêm thể loại';
+                button.disabled = false;
             }
+        }
+
+        // Build FormData đúng cách: với cặp checkbox+hidden cùng tên,
+        // chỉ lấy giá trị checkbox (true/false) thay vì gửi cả hai.
+        function buildFormData(form) {
+            const fd = new FormData();
+            const checkboxNames = new Set();
+            // Thu thập tên các checkbox
+            form.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+                checkboxNames.add(cb.name);
+                fd.append(cb.name, cb.checked ? 'true' : 'false');
+            });
+            // Thêm các field còn lại, bỏ qua hidden fields trùng tên với checkbox
+            form.querySelectorAll('input:not([type="checkbox"]), textarea, select').forEach(function (el) {
+                if (!el.name) return;
+                if (el.type === 'hidden' && checkboxNames.has(el.name)) return; // bỏ hidden backup
+                fd.append(el.name, el.value);
+            });
+            return fd;
+        }
+
+        async function postForm(url, form) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(function () { controller.abort(); }, 15000);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: buildFormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: controller.signal
+                });
+
+                const contentType = response.headers.get('content-type') || '';
+                const data = contentType.includes('application/json')
+                    ? await response.json()
+                    : { success: false, message: await response.text() };
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Máy chủ trả về lỗi ' + response.status);
+                }
+
+                return data;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        const createForm = document.getElementById('createGenreForm');
+        if (createForm) {
+            createForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const button = document.getElementById('submitGenreBtn');
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Đang xử lý...';
+                    button.disabled = true;
+                }
+
+                try {
+                    const response = await postForm(createForm.action, createForm);
+                    if (response && response.success) {
+                        closeModal('createGenreModal');
+                        window.location.reload();
+                        return;
+                    }
+                    alert((response && response.message) ? response.message : 'Không thể thêm thể loại!');
+                } catch (error) {
+                    alert(error.name === 'AbortError'
+                        ? 'Gửi yêu cầu quá lâu. Vui lòng kiểm tra lại kết nối hoặc thử tải lại trang.'
+                        : 'Có lỗi xảy ra: ' + error.message);
+                } finally {
+                    resetCreateButton();
+                }
+            });
+        }
+
+        const editForm = document.getElementById('editGenreForm');
+        if (editForm) {
+            editForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                try {
+                    const response = await postForm(editForm.action, editForm);
+                    if (response && response.success) {
+                        closeModal('editGenreModal');
+                        window.location.reload();
+                        return;
+                    }
+                    alert((response && response.message) ? response.message : 'Không thể cập nhật thể loại!');
+                } catch (error) {
+                    alert(error.name === 'AbortError'
+                        ? 'Gửi yêu cầu quá lâu. Vui lòng thử lại.'
+                        : 'Có lỗi xảy ra khi cập nhật: ' + error.message);
+                }
+            });
+        }
+
+        document.querySelectorAll('.delete-genre').forEach(function (button) {
+            button.addEventListener('click', async function (e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const row = document.getElementById('row-' + id);
+                const genreName = row ? row.querySelectorAll('td')[2].textContent.trim() : '';
+
+                if (!confirm('Bạn có chắc chắn muốn xóa thể loại "' + genreName + '"?')) return;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('id', id);
+                    formData.append('__RequestVerificationToken', requestToken);
+
+                    const response = await fetch('/Genre/Delete', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'RequestVerificationToken': requestToken
+                        }
+                    });
+                    const data = await response.json();
+
+                    alert(data.message || (data.success ? 'Xóa thành công!' : 'Không thể xóa!'));
+                    if (data.success && row) row.remove();
+                } catch (error) {
+                    alert('Có lỗi xảy ra khi xóa!');
+                }
+            });
         });
 
-        // Toggle status
-        $('.toggle-status').change(function() {
-            var id = $(this).data('id');
-            var $checkbox = $(this);
+        document.querySelectorAll('.toggle-status').forEach(function (checkbox) {
+            checkbox.addEventListener('change', async function () {
+                const id = this.dataset.id;
+                const currentCheckbox = this;
 
-            $.ajax({
-                url: '/Genre/ToggleStatus',
-                type: 'POST',
-                data: { id: id },
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val()
-                },
-                success: function(response) {
-                    if (!response.success) {
-                        $checkbox.prop('checked', !$checkbox.is(':checked'));
+                try {
+                    const formData = new FormData();
+                    formData.append('id', id);
+                    formData.append('__RequestVerificationToken', requestToken);
+
+                    const response = await fetch('/Genre/ToggleStatus', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'RequestVerificationToken': requestToken
+                        }
+                    });
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        currentCheckbox.checked = !currentCheckbox.checked;
+                        alert(data.message || 'Không thể đổi trạng thái!');
                     }
-                },
-                error: function() {
-                    $checkbox.prop('checked', !$checkbox.is(':checked'));
+                } catch (error) {
+                    currentCheckbox.checked = !currentCheckbox.checked;
                     alert('Có lỗi xảy ra!');
                 }
             });
         });
 
-        // Edit genre - load data
-        $('.edit-genre').click(function(e) {
-            e.stopPropagation();
-            $('#editGenreId').val($(this).data('id'));
-            $('#editGenreName').val($(this).data('name'));
-            $('#editGenreDescription').val($(this).data('description'));
-            $('#editGenreIcon').val($(this).data('icon') || 'fas fa-book');
-            $('#editGenreColor').val($(this).data('color') || '#E67E22');
-            $('#editGenreSortOrder').val($(this).data('sortorder'));
-            $('#editGenreIsActive').prop('checked', $(this).data('isactive') !== false);
+        document.querySelectorAll('.edit-genre').forEach(function (button) {
+            button.addEventListener('click', function () {
+                document.getElementById('editGenreId').value = this.dataset.id || '';
+                document.getElementById('editGenreName').value = this.dataset.name || '';
+                document.getElementById('editGenreDescription').value = this.dataset.description || '';
+                document.getElementById('editGenreIcon').value = this.dataset.icon || 'fas fa-book';
+                document.getElementById('editGenreColor').value = this.dataset.color || '#E67E22';
+                document.getElementById('editGenreSortOrder').value = this.dataset.sortorder || 0;
+                document.getElementById('editGenreIsActive').checked = String(this.dataset.isactive) === 'true';
+            });
         });
 
-        // Search function
-        window.searchTable = function() {
-            var input = document.getElementById("searchInput");
-            var filter = input.value.toLowerCase();
-            var table = document.getElementById("genreTable");
-            var rows = table.getElementsByTagName("tr");
+        window.searchTable = function () {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('#genreTable tbody tr');
 
-            for (var i = 1; i < rows.length; i++) {
-                var nameCell = rows[i].getElementsByTagName("td")[2];
-                if (nameCell) {
-                    var name = nameCell.textContent || nameCell.innerText;
-                    if (name.toLowerCase().indexOf(filter) > -1) {
-                        rows[i].style.display = "";
-                    } else {
-                        rows[i].style.display = "none";
-                    }
-                }
-            }
+            rows.forEach(function (row) {
+                const nameCell = row.querySelectorAll('td')[2];
+                const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+                row.style.display = name.includes(filter) ? '' : 'none';
+            });
         };
 
-        $('#searchInput').keypress(function(e) {
-            if (e.which == 13) {
-                searchTable();
-            }
-        });
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') searchTable();
+            });
+        }
     });
 </script>
