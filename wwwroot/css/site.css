@@ -1,648 +1,721 @@
-﻿/* =========================================================
-   FIX FORM LỆCH + HỖ TRỢ MODEL 3D TRANG CHỦ
-   Dán cuối file: wwwroot/css/site.css
-========================================================= */
-
-html, body {
-    max-width: 100%;
-    overflow-x: hidden;
+﻿@model IEnumerable<DACS_Nhom3.Models.Story> @ {
+    ViewData ["Title"] = "Thư viện truyện";
+    var genres = ViewBag.Genres as List<DACS_Nhom3.Models.Genre>;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string sortBy = ViewBag.SortBy ?? "newest";
+    string searchString = ViewBag.SearchString ?? "";
+    int ? currentGenre = ViewBag.CurrentGenre;
 }
 
-.navbar {
-    width: 100%;
+<div class="library-page" >
+<!-- Page Header -->
+<div class="library-header" >
+<div class="container" >
+<div class="row align-items-center" >
+<div class="col-md-6" >
+<h1 class="library-title" > <i class="fas fa-book-open me-3" > </i > Thư Viện Truyện</h1 >
+<p class="library-subtitle" > Khám phá hàng ngàn câu chuyện hấp dẫn</p >
+</div >
+<div class="col-md-6" >
+<!-- Search Bar -->
+<form method="get" asp-action="Index" class="search-form" >
+<div class="input-group" >
+<input type="text" name="searchString" value="@searchString"
+class="form-control search-input" placeholder="Tìm kiếm tên truyện..." >
+<input type="hidden" name="sortBy" value="@sortBy" >
+@if (currentGenre.HasValue) {
+    <input type="hidden" name="genreId" value="@currentGenre">
 }
 
-    .navbar .container {
-        max-width: 1320px;
+<button class="btn btn-search" type="submit" >
+<i class="fas fa-search" > </i >
+</button >
+</div >
+</form >
+</div >
+</div >
+</div >
+</div >
+
+<div class="container py-4" >
+<div class="row" >
+<!-- Sidebar: Filter -->
+<div class="col-lg-3 mb-4" >
+<div class="filter-card" >
+<h5 class="filter-title" > <i class="fas fa-filter me-2" > </i > Bộ lọc</h5 >
+<!-- Sort -->
+<div class="filter-section" >
+<label class="filter-label" > Sắp xếp theo</label >
+<div class="sort-buttons" >
+<a href="@Url.Action("Index", new { sortBy = "newest", genreId = currentGenre, searchString })"
+class="sort-btn @(sortBy == "newest" ? "active" : "")" >
+<i class="fas fa-clock me-1" > </i > Mới nhất
+</a >
+<a href="@Url.Action("Index", new { sortBy = "popular", genreId = currentGenre, searchString })"
+class="sort-btn @(sortBy == "popular" ? "active" : "")" >
+<i class="fas fa-eye me-1" > </i > Xem nhiều
+</a >
+<a href="@Url.Action("Index", new { sortBy = "likes", genreId = currentGenre, searchString })"
+class="sort-btn @(sortBy == "likes" ? "active" : "")" >
+<i class="fas fa-heart me-1" > </i > Yêu thích
+</a >
+</div >
+</div >
+<!-- Genres -->
+<div class="filter-section" >
+<label class="filter-label" > Thể loại</label >
+<div class="genre-list" >
+<a href="@Url.Action("Index", new { sortBy, searchString })"
+class="genre-filter-btn @(!currentGenre.HasValue ? "active" : "")" >
+<i class="fas fa-th me-1" > </i > Tất cả
+</a >
+@if (genres != null) {
+    foreach (var genre in genres)
+
+{
+    <a href="@Url.Action("Index", new { genreId = genre.Id, sortBy, searchString })" class="genre-filter-btn @(currentGenre == genre.Id ? "active" : "")"> <i class="@(string.IsNullOrEmpty(genre.Icon) ? "fas fa-book" : genre.Icon) me-1"></i> @genre.Name </a>
+}
+
+}
+
+</div >
+</div >
+</div >
+</div >
+<!-- Main Content -->
+<div class="col-lg-9" >
+@if (User.IsInRole("Admin")) {
+    <div class="admin-toolbar mb-4"> <div> <strong><i class="fas fa-screwdriver-wrench me-2"></i>Quản trị truyện</strong> <span>Thêm, sửa hoặc xóa truyện trong thư viện.</span> </div> <a asp-action="Create" class="admin-add-btn"> <i class="fas fa-plus-circle me-1"></i> Thêm truyện </a> </div>
+}
+
+@if (!string.IsNullOrEmpty(searchString)) {
+    <div class="search-result-info mb-3"> <i class="fas fa-search me-2"></i> Kết quả tìm kiếm cho: <strong>"@searchString"</strong> — @Model.Count() truyện được tìm thấy <a href="@Url.Action("Index", new { sortBy })" class="ms-2 clear-search"> <i class="fas fa-times"></i> Xóa </a> </div>
+}
+
+@if (Model != null && Model.Any()) {
+    <div class="row g-4 story-grid" >
+    @foreach (var story in Model) {
+        <div class="col-xl-4 col-lg-4 col-md-6" data-aos="fade-up"> <div class="story-card h-100" onclick="location.href='@Url.Action("Details", "Story", new { id = story.Id })'" style="cursor:pointer;"> <a href="@Url.Action("Details", "Story", new { id = story.Id })" class="story-card-link"> <div class="story-card-img-wrapper"> <img src="@(story.CoverImageUrl ?? "/images/default-cover.jpg")" class="story-card-img" alt="@story.Title" onerror="this.src='/images/default-cover.jpg'"> <div class="story-card-overlay"> <span class="read-now-btn"><i class="fas fa-list-ol me-1"></i>Xem tập</span> </div> <span class="story-genre-badge">@(story.Genre?.Name ?? "Chưa phân loại")</span> @
+
+{
+    var episodeCountObj = ViewData[$"EpisodeCount_{story.Id}"];
+    var episodeCount = episodeCountObj == null ? 1 : (int)episodeCountObj;
+}
+
+<span class="story-episode-badge" >
+<i class="fas fa-layer-group me-1" > </i > @episodeCount tập
+</span >
+</div >
+</a >
+<div class="story-card-body" >
+<h3 class="story-title" >
+<a href="@Url.Action("Details", "Story", new { id = story.Id })" onclick="event.stopPropagation();" > @story.Title</a >
+</h3 >
+<div class="story-author" >
+<i class="fas fa-user-pen me-1" > </i >
+@(string.IsNullOrEmpty(story.Author) ? "Không rõ" : story.Author)
+</div >
+<p class="story-description" >
+@(story.Description?.Length > 90 ? story.Description.Substring(0, 90) + "..." : story.Description)
+</p >
+<div class="story-stats" >
+<span > <i class="fas fa-eye" > </i > @story.Views</span >
+<span > <i class="fas fa-heart" > </i > @story.Likes</span >
+<span > <i class="fas fa-comments" > </i > @(story.Comments?.Count ?? 0)</span >
+</div >
+
+@if (User.IsInRole("Admin")) {
+    <div class="admin-story-actions" onclick="event.stopPropagation();"> <a asp-action="Edit" asp-route-id="@story.Id" class="admin-action-btn edit-btn" title="Sửa truyện"> <i class="fas fa-pen"></i> Sửa </a> <a asp-action="Delete" asp-route-id="@story.Id" class="admin-action-btn delete-btn" title="Xóa truyện"> <i class="fas fa-trash"></i> Xóa </a> </div>
+}
+
+</div >
+</div >
+</div >
+}
+
+</div >
+<!-- Pagination -->
+@if (totalPages > 1) {
+    <nav class="mt-5 d-flex justify-content-center"> <ul class="pagination-custom"> @if (currentPage > 1)
+
+{
+    <li> <a href="@Url.Action("Index", new { page = currentPage - 1, sortBy, genreId = currentGenre, searchString })" class="page-btn"> <i class="fas fa-chevron-left"></i> </a> </li>
+}
+
+@for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++) {
+    <li> <a href="@Url.Action("Index", new { page = i, sortBy, genreId = currentGenre, searchString })" class="page-btn @(i == currentPage ? "active" : "")">@i</a> </li>
+}
+
+@if (currentPage < totalPages) {
+    <li> <a href="@Url.Action("Index", new { page = currentPage + 1, sortBy, genreId = currentGenre, searchString })" class="page-btn"> <i class="fas fa-chevron-right"></i> </a> </li>
+}
+
+</ul >
+</nav >
+}
+}
+
+else {
+    <div class="empty-state"> <i class="fas fa-book-open fa-4x mb-4"></i> <h4>Không tìm thấy truyện nào</h4> <p>Thử tìm kiếm với từ khóa khác hoặc chọn thể loại khác.</p> <a href="@Url.Action("Index")" class="btn-primary-custom mt-3"> <i class="fas fa-refresh me-2"></i>Xem tất cả </a> </div>
+}
+
+</div >
+</div >
+</div >
+</div >
+
+<style >
+.library-page {
+    background: #f6f8fb;
+    min-height: calc(100vh - 80px);
+}
+
+.library-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 2.8rem 0;
+    margin-bottom: 0;
+}
+
+.library-title {
+    font-family: 'Playfair Display', serif;
+    color: white;
+    font-size: 2.15rem;
+    margin-bottom: 0.25rem;
+    font-weight: 800;
+}
+
+.library-subtitle {
+    color: rgba(255,255,255,0.78);
+    margin: 0;
+    font-size: 1rem;
+}
+
+.search-form .input-group {
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    background: white;
+}
+
+.search-input {
+    border: none;
+    padding: 0.9rem 1.5rem;
+    font-size: 0.95rem;
+    background: rgba(255,255,255,0.96);
+}
+
+    .search-input:focus {
+        box-shadow: none;
+        background: white;
     }
 
-.navbar-nav {
-    align-items: center;
+.btn-search {
+    background: var(--secondary);
+    border: none;
+    color: white;
+    padding: 0 1.65rem;
+    transition: all 0.25s;
 }
 
-.nav-link {
+    .btn-search:hover {
+        background: var(--secondary-dark);
+        color: white;
+    }
+
+.filter-card {
+    background: white;
+    border-radius: 22px;
+    padding: 1.6rem;
+    box-shadow: 0 18px 40px rgba(44,62,80,0.08);
+    border: 1px solid rgba(44,62,80,0.06);
+    position: sticky;
+    top: 90px;
+}
+
+.filter-title {
+    font-weight: 800;
+    color: var(--primary);
+    border-bottom: 1px solid #edf0f2;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1.15rem;
+}
+
+.filter-section {
+    margin-bottom: 1.5rem;
+}
+
+.filter-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #8b989d;
+    margin-bottom: 0.65rem;
+    display: block;
+}
+
+.sort-buttons,
+.genre-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.genre-list {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.sort-btn,
+.genre-filter-btn {
+    display: block;
+    padding: 0.7rem 0.95rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #34495e;
+    font-size: 0.92rem;
+    transition: all 0.22s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-form,
-.search-form,
-.newsletter-form,
-.input-group {
-    max-width: 100%;
+    .sort-btn:hover,
+    .sort-btn.active {
+        background: var(--secondary);
+        color: white;
+        transform: translateX(4px);
+    }
+
+    .genre-filter-btn:hover,
+    .genre-filter-btn.active {
+        background: rgba(230,126,34,0.12);
+        color: var(--secondary);
+        padding-left: 1.1rem;
+    }
+
+.story-grid {
+    align-items: stretch;
 }
 
-input,
-textarea,
-select,
-.form-control {
-    max-width: 100%;
-    min-width: 0;
+.story-card {
+    position: relative;
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 18px 42px rgba(44,62,80,0.10);
+    border: 1px solid rgba(44,62,80,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    cursor: pointer;
+    max-width: 330px;
+    margin: 0 auto;
 }
 
-.card,
-.story-card,
-.genre-card {
-    max-width: 100%;
+    .story-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 26px 58px rgba(44,62,80,0.16);
+        border-color: rgba(230,126,34,0.25);
+    }
+
+.story-card-link {
+    text-decoration: none;
+    display: block;
 }
 
 .story-card-img-wrapper {
+    position: relative;
     overflow: hidden;
+    background: linear-gradient(180deg, #fff7ef 0%, #ffffff 100%);
+    height: 315px;
+    padding: 18px 18px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .story-card-img {
     width: 100%;
-    height: 320px;
-    object-fit: cover;
-    display: block;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 18px;
+    filter: drop-shadow(0 10px 18px rgba(44,62,80,0.14));
+    transition: transform 0.35s ease;
 }
 
-.hero {
-    overflow: hidden;
+.story-card:hover .story-card-img {
+    transform: scale(1.035);
 }
 
-    .hero .row {
-        row-gap: 40px;
-    }
-
-.anime-3d-card {
-    position: relative;
-    width: 100%;
-    min-height: 520px;
-    border-radius: 34px;
-    overflow: hidden;
-    background: radial-gradient(circle at 50% 20%, rgba(255, 145, 0, .35), transparent 35%), linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-    border: 1px solid rgba(255,255,255,.22);
-    box-shadow: 0 30px 90px rgba(0,0,0,.35);
-    backdrop-filter: blur(10px);
-}
-
-.anime-3d-glow {
-    position: absolute;
-    width: 260px;
-    height: 260px;
-    border-radius: 999px;
-    background: rgba(238, 126, 20, .55);
-    filter: blur(80px);
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-}
-
-.anime-3d-model {
-    width: 100%;
-    height: 520px;
-    position: relative;
-    z-index: 2;
-    --poster-color: transparent;
-    cursor: grab;
-}
-
-    .anime-3d-model:active {
-        cursor: grabbing;
-    }
-
-.anime-3d-info {
-    position: absolute;
-    left: 24px;
-    right: 24px;
-    bottom: 24px;
-    z-index: 3;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    padding: 14px 18px;
-    color: white;
-    border-radius: 20px;
-    background: rgba(15, 23, 42, .72);
-    border: 1px solid rgba(255,255,255,.2);
-    backdrop-filter: blur(8px);
-}
-
-    .anime-3d-info span {
-        color: #fb923c;
-        font-weight: 800;
-    }
-
-    .anime-3d-info strong {
-        font-weight: 700;
-    }
-
-@media (max-width: 991px) {
-    .navbar-nav {
-        align-items: flex-start;
-    }
-
-    .anime-3d-card {
-        min-height: 420px;
-        margin-top: 30px;
-    }
-
-    .anime-3d-model {
-        height: 420px;
-    }
-}
-
-@media (max-width: 576px) {
-    .hero {
-        padding-top: 120px;
-    }
-
-    .anime-3d-card {
-        min-height: 340px;
-        border-radius: 24px;
-    }
-
-    .anime-3d-model {
-        height: 340px;
-    }
-
-    .anime-3d-info {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-
-/* ===== Professional Motion Effects ===== */
-
-.hero::after {
-    content: "";
-    position: absolute;
-    width: 420px;
-    height: 420px;
-    right: -120px;
-    top: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 107, 53, .32), transparent 65%);
-    filter: blur(12px);
-    animation: heroGlowMove 7s ease-in-out infinite alternate;
-    pointer-events: none;
-}
-
-@keyframes heroGlowMove {
-    from {
-        transform: translate(0, 0) scale(1);
-    }
-
-    to {
-        transform: translate(-80px, 60px) scale(1.15);
-    }
-}
-
-.story-card,
-.genre-card,
-.anime-3d-card {
-    transform-style: preserve-3d;
-    will-change: transform;
-}
-
-    .story-card:hover,
-    .genre-card:hover {
-        transform: translateY(-8px) scale(1.015);
-    }
-
-.story-card-img-wrapper::after {
-    content: "";
+.story-card-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.35), transparent 70%);
-    transform: translateX(-120%);
-    transition: .75s ease;
-}
-
-.story-card:hover .story-card-img-wrapper::after {
-    transform: translateX(120%);
-}
-
-.btn-primary-custom,
-.btn-outline-custom {
-    position: relative;
-    overflow: hidden;
-}
-
-    .btn-primary-custom::after,
-    .btn-outline-custom::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -80%;
-        width: 50%;
-        height: 100%;
-        background: linear-gradient(120deg, transparent, rgba(255,255,255,.45), transparent);
-        transform: skewX(-20deg);
-    }
-
-    .btn-primary-custom:hover::after,
-    .btn-outline-custom:hover::after {
-        animation: buttonShine .8s ease;
-    }
-
-@keyframes buttonShine {
-    from {
-        left: -80%;
-    }
-
-    to {
-        left: 130%;
-    }
-}
-
-.navbar.fixed-top {
-    transition: background .25s ease, box-shadow .25s ease, transform .25s ease;
-}
-
-    .navbar.fixed-top.scrolled {
-        background: rgba(255,255,255,.88) !important;
-        box-shadow: 0 14px 40px rgba(17,24,39,.12);
-        backdrop-filter: blur(18px);
-    }
-/* ===== FIX DROPDOWN ADMIN ===== */
-
-.navbar,
-.navbar.fixed-top {
-    z-index: 999999 !important;
-    position: fixed !important;
-}
-
-    .navbar .dropdown {
-        position: relative !important;
-    }
-
-    .navbar .dropdown-menu {
-        z-index: 1000000 !important;
-        position: absolute !important;
-    }
-
-main,
-.footer,
-.hero,
-.card,
-.admin-container,
-.genre-container,
-.table-responsive {
-    position: relative;
-    z-index: 1 !important;
-}
-
-.anime-3d-card {
-    animation: floatModel 4.5s ease-in-out infinite;
-}
-
-@keyframes floatModel {
-    0%, 100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-.section-header {
-    position: relative;
-}
-
-.section-title::after {
-    content: "";
-    display: block;
-    width: 72px;
-    height: 4px;
-    margin: 14px auto 0;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #ff6b35, #f59e0b);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation: none !important;
-        transition: none !important;
-    }
-}
-
-
-/* ===== User profile / avatar ===== */
-.user-menu-toggle {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 107, 53, .45);
-    box-shadow: 0 6px 16px rgba(17,24,39,.12);
-}
-
-.profile-page {
-    min-height: 70vh;
-    background: radial-gradient(circle at 15% 10%, rgba(255,107,53,.10), transparent 30%), #f8fafc;
-}
-
-.profile-card {
-    background: #fff;
-    border-radius: 28px;
-    padding: 34px;
-    border: 1px solid rgba(17,24,39,.08);
-    box-shadow: 0 24px 70px rgba(17,24,39,.10);
-}
-
-.profile-header h1 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 800;
-    color: #111827;
-}
-
-.profile-header p {
-    color: #6b7280;
-    margin-bottom: 0;
-}
-
-.profile-avatar-preview {
-    width: 126px;
-    height: 126px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 5px solid #fff;
-    box-shadow: 0 16px 42px rgba(17,24,39,.20);
-}
-
-/* =========================================================
-   PROFILE PAGE REDESIGN + EXTRA FIELDS
-========================================================= */
-.profile-edit-page {
-    min-height: calc(100vh - 80px);
-    padding: 56px 0 72px;
-    background: radial-gradient(circle at 15% 10%, rgba(255, 107, 53, .13), transparent 28%), radial-gradient(circle at 85% 8%, rgba(99, 102, 241, .12), transparent 26%), linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-}
-
-.profile-edit-shell {
-    max-width: 1080px;
-    margin: 0 auto;
-}
-
-.profile-edit-hero {
-    position: relative;
-    overflow: hidden;
+    background: linear-gradient(180deg, rgba(44,62,80,0.08), rgba(44,62,80,0.55));
     display: flex;
-    align-items: center;
-    gap: 28px;
-    padding: 34px;
-    margin-bottom: 24px;
-    border-radius: 32px;
-    color: #fff;
-    background: linear-gradient(135deg, #111827 0%, #312e81 52%, #f97316 140%);
-    box-shadow: 0 28px 70px rgba(15, 23, 42, .24);
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
 
-    .profile-edit-hero::after {
-        content: "";
-        position: absolute;
-        width: 280px;
-        height: 280px;
-        right: -90px;
-        top: -90px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, .15);
-    }
-
-.profile-avatar-wrap {
-    position: relative;
-    flex: 0 0 auto;
-    z-index: 1;
+.story-card:hover .story-card-overlay {
+    opacity: 1;
 }
 
-.profile-avatar-preview {
-    width: 148px;
-    height: 148px;
-    border-radius: 32px;
-    object-fit: cover;
-    display: block;
-    border: 5px solid rgba(255,255,255,.82);
-    box-shadow: 0 18px 45px rgba(0,0,0,.3);
-    background: #fff;
+.read-now-btn {
+    background: var(--secondary);
+    color: white;
+    padding: 0.62rem 1.3rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    box-shadow: 0 10px 24px rgba(230,126,34,0.35);
 }
 
-.profile-avatar-badge {
+.story-genre-badge {
     position: absolute;
-    right: -8px;
-    bottom: -8px;
-    width: 44px;
-    height: 44px;
-    border-radius: 15px;
-    display: grid;
-    place-items: center;
-    color: #fff;
-    background: #f97316;
-    border: 4px solid #fff;
-    box-shadow: 0 12px 25px rgba(249, 115, 22, .35);
-}
-
-.profile-kicker {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    padding: 7px 12px;
-    margin-bottom: 12px;
+    top: 16px;
+    left: 16px;
+    background: var(--secondary);
+    color: white;
+    padding: 0.38rem 0.85rem;
     border-radius: 999px;
-    background: rgba(255,255,255,.16);
-    font-size: .84rem;
+    font-size: 0.78rem;
     font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
+    box-shadow: 0 8px 20px rgba(230,126,34,0.28);
+    max-width: calc(100% - 32px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 2;
 }
 
-.profile-edit-hero h1 {
-    position: relative;
-    z-index: 1;
-    margin: 0 0 10px;
-    font-size: clamp(2rem, 4vw, 3.15rem);
-    line-height: 1.05;
-    font-weight: 900;
+.story-card-body {
+    padding: 1.1rem 1.2rem 1.15rem;
 }
 
-.profile-edit-hero p {
-    position: relative;
-    z-index: 1;
-    margin: 0;
-    color: rgba(255,255,255,.82);
-    font-size: 1.05rem;
+.story-title {
+    font-size: 1.08rem;
+    font-weight: 800;
+    margin-bottom: 0.55rem;
+    line-height: 1.35;
+    min-height: 2.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-.profile-alert {
-    border: 0;
-    border-radius: 20px;
-    padding: 16px 20px;
-    box-shadow: 0 16px 35px rgba(22, 163, 74, .12);
-}
+    .story-title a {
+        color: #26384a;
+        text-decoration: none;
+    }
 
-.profile-edit-form {
-    display: block;
-}
+        .story-title a:hover {
+            color: var(--secondary);
+        }
 
-.profile-form-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(320px, .9fr);
-    gap: 22px;
-}
-
-.profile-panel {
-    padding: 28px;
-    border-radius: 28px;
-    background: rgba(255,255,255,.86);
-    border: 1px solid rgba(226, 232, 240, .9);
-    box-shadow: 0 24px 55px rgba(15, 23, 42, .10);
-    backdrop-filter: blur(14px);
-}
-
-.profile-security-panel {
-    align-self: start;
-}
-
-.profile-panel-title {
+.story-author {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 22px;
+    gap: 0.35rem;
+    font-size: 0.88rem;
+    color: #7f8c8d;
+    margin-bottom: 0.65rem;
 }
 
-    .profile-panel-title > i {
-        width: 46px;
-        height: 46px;
-        border-radius: 16px;
-        display: grid;
-        place-items: center;
-        color: #fff;
-        background: linear-gradient(135deg, #f97316, #ef4444);
-        box-shadow: 0 12px 24px rgba(239, 68, 68, .22);
+    .story-author i {
+        color: var(--secondary);
     }
 
-    .profile-panel-title h2 {
-        margin: 0;
-        color: #111827;
-        font-size: 1.2rem;
-        font-weight: 900;
-    }
-
-    .profile-panel-title p {
-        margin: 3px 0 0;
-        color: #64748b;
-        font-size: .92rem;
-    }
-
-.profile-panel .form-label {
-    color: #334155;
-    font-weight: 800;
-    margin-bottom: 8px;
+.story-description {
+    font-size: 0.88rem;
+    color: #66737a;
+    line-height: 1.55;
+    min-height: 2.75rem;
+    margin-bottom: 0.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-.profile-input {
-    min-height: 46px;
-    border-radius: 14px;
-    border: 1px solid #dbe3ef;
-    background-color: #fff;
-    box-shadow: none;
-    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
-}
-
-    .profile-input:focus {
-        border-color: #f97316;
-        box-shadow: 0 0 0 .22rem rgba(249, 115, 22, .13);
-    }
-
-.profile-hint {
-    display: block;
-    margin-top: 8px;
-    color: #64748b;
-}
-
-.profile-note {
-    padding: 14px 16px;
-    border-radius: 16px;
-    color: #92400e;
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    font-size: .93rem;
-}
-
-.profile-actions {
+.story-stats {
     display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-    padding: 18px;
-    border-radius: 24px;
-    background: rgba(255,255,255,.72);
-    border: 1px solid rgba(226,232,240,.9);
-    box-shadow: 0 20px 45px rgba(15,23,42,.08);
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #edf0f2;
+    font-size: 0.86rem;
+    color: #7f8c8d;
 }
 
-.profile-back-btn,
-.profile-save-btn {
-    min-height: 46px;
-    padding: 10px 18px;
-    border-radius: 15px;
+    .story-stats span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 600;
+    }
+
+        .story-stats span i {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+.search-result-info {
+    background: rgba(230,126,34,0.1);
+    border: 1px solid rgba(230,126,34,0.25);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    font-size: 0.92rem;
+    color: #34495e;
+}
+
+.clear-search {
+    color: #dc3545;
+    text-decoration: none;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.pagination-custom {
+    display: flex;
+    gap: 0.45rem;
+    list-style: none;
+    padding: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: white;
+    color: #34495e;
+    text-decoration: none;
     font-weight: 800;
+    box-shadow: 0 10px 24px rgba(44,62,80,0.08);
+    transition: all 0.2s;
+    border: 1px solid rgba(44,62,80,0.06);
 }
 
-.profile-back-btn {
-    color: #334155;
-    border: 1px solid #e2e8f0;
+    .page-btn:hover,
+    .page-btn.active {
+        background: var(--secondary);
+        color: white;
+        border-color: var(--secondary);
+        transform: translateY(-2px);
+    }
+
+.empty-state {
+    background: white;
+    border-radius: 24px;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #7f8c8d;
+    box-shadow: 0 18px 42px rgba(44,62,80,0.08);
 }
 
-.profile-save-btn {
+    .empty-state i {
+        color: #d7dde0;
+    }
+
+
+
+{
+    position: static;
+}
+
+.story-card {
+    max-width: 360px;
+}
+
+}
+
+
+
+{
+    font-size: 1.8rem;
+}
+
+.story-card {
+    max-width: 100%;
+}
+
+.story-card-img-wrapper {
+    height: 290px;
+}
+
+}
+
+.admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid rgba(230,126,34,.18);
+    border-radius: 18px;
+    padding: 1rem 1.2rem;
+    box-shadow: 0 10px 28px rgba(17,24,39,.06);
+}
+
+    .admin-toolbar span {
+        display: block;
+        color: #7f8c8d;
+        font-size: .9rem;
+        margin-top: .15rem;
+    }
+
+.admin-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
     color: #fff;
-    border: 0;
-    background: linear-gradient(135deg, #f97316, #ef4444);
-    box-shadow: 0 14px 30px rgba(249, 115, 22, .28);
+    background: linear-gradient(135deg,#E67E22,#d35400);
+    text-decoration: none;
+    padding: .7rem 1rem;
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(230,126,34,.25);
 }
 
-    .profile-save-btn:hover {
+    .admin-add-btn:hover {
         color: #fff;
         transform: translateY(-1px);
-        box-shadow: 0 18px 36px rgba(249, 115, 22, .35);
     }
 
-@media (max-width: 991px) {
-    .profile-form-grid {
-        grid-template-columns: 1fr;
-    }
+.admin-story-actions {
+    display: flex;
+    gap: .6rem;
+    margin-top: .9rem;
+    padding-top: .85rem;
+    border-top: 1px solid #edf0f3;
 }
 
-@media (max-width: 576px) {
-    .profile-edit-page {
-        padding: 28px 0 46px;
-    }
-
-    .profile-edit-hero {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 24px;
-        border-radius: 24px;
-    }
-
-    .profile-avatar-preview {
-        width: 118px;
-        height: 118px;
-        border-radius: 26px;
-    }
-
-    .profile-panel {
-        padding: 20px;
-        border-radius: 22px;
-    }
-
-    .profile-actions {
-        flex-direction: column-reverse;
-    }
-
-    .profile-back-btn,
-    .profile-save-btn {
-        width: 100%;
-    }
+.admin-action-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    border-radius: 12px;
+    padding: .55rem .75rem;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: .9rem;
+    transition: all .2s ease;
 }
+
+.edit-btn {
+    color: #0d6efd;
+    background: rgba(13,110,253,.09);
+}
+
+.delete-btn {
+    color: #dc3545;
+    background: rgba(220,53,69,.09);
+}
+
+.edit-btn:hover {
+    color: #fff;
+    background: #0d6efd;
+}
+
+.delete-btn:hover {
+    color: #fff;
+    background: #dc3545;
+}
+
+
+.story-episode-badge {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 3;
+    background: rgba(35, 47, 62, .92);
+    color: #fff;
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-size: .78rem;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+
+
+/* FIX HIỂN THỊ ẢNH BÌA: không bị chồng/cắt ảnh */
+.story-card {
+    width: 100%;
+    max-width: 340px;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+}
+
+.story-card-link,
+.story-card-img-wrapper {
+    flex-shrink: 0;
+}
+
+.story-card-img-wrapper {
+    width: 100%;
+    height: 340px !important;
+    padding: 16px !important;
+    background: #fff;
+    overflow: hidden;
+}
+
+.story-card-img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain !important;
+    object-position: center center;
+    border-radius: 16px;
+}
+
+.story-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+}
+
+.story-description {
+    flex: 1;
+}
+
+
+
+{
+    height: 300px !important;
+}
+
+}
+
+/* FIX TEXT COLOR */
+.filter-title,
+.filter-label,
+.sort-btn,
+.genre-filter-btn,
+.story-title,
+.story-title a,
+.story-author,
+.story-description,
+.search-result-info,
+.search-input,
+.search-input::placeholder {
+    color: #1f2937 !important;
+}
+
+</style >
